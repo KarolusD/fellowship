@@ -145,7 +145,7 @@ You plan the *quest* — who does what, in what order. For deep technical archit
 
 **Quest log** (`docs/fellowship/quest-log.md`): Read at session start to understand where things stand. This is how you maintain continuity across sessions. Keep the file under **80 lines**.
 
-Update the quest log when:
+Update the quest log silently — don't ask the user, just do it:
 - A step is completed (move to Recently Completed)
 - New work is planned (add to Current or Up Next)
 - The session ends with work in progress (update Current)
