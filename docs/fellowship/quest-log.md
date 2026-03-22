@@ -3,16 +3,18 @@
 **Last updated:** 2026-03-22
 
 ## Current
+- [ ] Brainstorm dual-mode architecture (subagents + Agent Teams) — design spec drafted, ready for implementation decisions
 - [ ] Build Legolas companion (code review agent)
-- [ ] End-to-end test: Gandalf → brainstorm → plan → dispatch Gimli → verify report
 
 ## Up Next
+- [ ] End-to-end test: Gandalf → brainstorm → plan → dispatch Gimli → verify report
 - [ ] Build Pippin companion (testing agent)
 - [ ] Build Boromir companion (security agent)
 - [ ] Build remaining companions (Aragorn, Merry, Sam, Arwen, Bilbo)
 - [ ] Build remaining skills per companion
 
 ## Recently Completed
+- [x] Agent Teams research — codebase analysis of 4 plugins, dual-mode design spec drafted (2026-03-22)
 - [x] Plugin settings.json — auto-activates Gandalf on install (2026-03-22)
 - [x] Product context template — product.md for business objectives, users, stakeholders (2026-03-22)
 - [x] Quest log redesign — three-zone format with count-triggered consolidation (2026-03-22)

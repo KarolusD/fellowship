@@ -173,6 +173,166 @@ When Recently Completed overflows, oldest items consolidate into What Exists and
 
 ---
 
+## Agent Teams: Future Direction for Tier 4
+
+**Status as of March 2026:** Experimental, promising but unstable. Revisit when it exits experimental status.
+
+### Why Agent Teams matters for Fellowship
+
+Agent Teams is fundamentally different from subagent dispatch — teammates are peers that communicate directly, share a task list, and self-coordinate. This is more lore-accurate than our current hierarchical model: the Fellowship in Tolkien operates as peers. Gandalf guides but doesn't command. Decisions are made through debate (Council of Elrond, Moria vs Gap of Rohan).
+
+Anthropic's own guidance captures the distinction perfectly:
+
+> "Use subagents when you need quick, focused workers that report back. Use agent teams when teammates need to share findings, challenge each other, and coordinate on their own." — [Agent Teams docs](https://code.claude.com/docs/en/agent-teams#when-to-use-agent-teams)
+
+### What it enables that subagents can't
+
+The Agent Teams docs describe use cases that map directly to Fellowship scenarios:
+
+- **Parallel code review** — The docs show: "Spawn three reviewers: one focused on security implications, one checking performance impact, one validating test coverage. Have them each review and report findings." That's Boromir + Legolas + Pippin working as a review team. "Each reviewer works from the same PR but applies a different filter. The lead synthesizes findings across all three after they finish." ([Source](https://code.claude.com/docs/en/agent-teams#run-a-parallel-code-review))
+
+- **Multi-perspective brainstorming / Council of Elrond** — The docs show: "Spawn 5 agent teammates to investigate different hypotheses. Have them talk to each other to try to disprove each other's theories, like a scientific debate." And crucially: "The debate structure is the key mechanism here. Sequential investigation suffers from anchoring: once one theory is explored, subsequent investigation is biased toward it. With multiple independent investigators actively trying to disprove each other, the theory that survives is much more likely to be the actual root cause." That's Aragorn, Merry, and Sam debating an approach. ([Source](https://code.claude.com/docs/en/agent-teams#investigate-with-competing-hypotheses))
+
+- **Cross-layer coordination** — "Changes that span frontend, backend, and tests, each owned by a different teammate." Gimli building API + Pippin writing tests, synchronizing on interfaces.
+
+- **Direct conversation with companions** — "Each teammate is a full, independent Claude Code session. You can message any teammate directly to give additional instructions, ask follow-up questions, or redirect their approach." Frodo can Shift+Down to talk directly to Boromir about security without going through Gandalf.
+
+- **Plan approval** — "Require teammates to plan before implementing. The teammate works in read-only plan mode until the lead approves their approach." Gandalf reviews a companion's plan, approves or rejects with feedback. The companion stays in plan mode until approved. ([Source](https://code.claude.com/docs/en/agent-teams#require-plan-approval-for-teammates))
+
+### Best practices from the docs (relevant to Fellowship)
+
+- **Start with 3-5 teammates** — balances parallel work with coordination overhead
+- **5-6 tasks per teammate** — keeps everyone productive
+- **Start with research and review** — easier than parallel implementation
+- **Avoid file conflicts** — "Two teammates editing the same file leads to overwrites. Break the work so each teammate owns a different set of files."
+- **Monitor and steer** — "Check in on teammates' progress, redirect approaches that aren't working, and synthesize findings as they come in."
+- **Use Sonnet for teammates** — cost-efficient, lead can use a more capable model
+
+### Sustained collaboration — the strongest argument beyond parallelism
+
+Agent Teams isn't just about running things in parallel. It's about **persistent, direct collaboration with a specialist.**
+
+With subagents, every design iteration goes: Frodo → Gandalf → dispatch Arwen → Arwen works → reports to Gandalf → Gandalf tells Frodo. For a 2-hour design session with 15 iterations, that's 15 round-trips through a middleman who isn't adding value.
+
+With Agent Teams, Frodo Shift+Downs to Arwen's pane and talks directly. Arwen persists as a full session — she remembers previous iterations, design direction, preferences. The conversation flows naturally. Gandalf stays available as the lead but doesn't block.
+
+This applies to any sustained work with one companion:
+- A deep design session with Arwen (2 hours of iteration)
+- Walking through the codebase with Boromir for security review
+- Debugging a complex issue with Pippin, trying different approaches
+- Discussing architecture trade-offs with Merry
+
+Subagents are fire-and-forget workers. Teammates are persistent collaborators. For sustained work with one companion, teammates are clearly the better model.
+
+### The promise
+
+| Feature | Impact for Fellowship |
+|---|---|
+| Teammates communicate directly | Companions can debate and challenge each other (Council of Elrond) |
+| Shared task list with dependencies | Natural quest log — tasks auto-unblock when dependencies complete |
+| Self-claiming tasks | Companions pick up work based on their expertise, not just assignment |
+| Plan approval mode | Gandalf reviews a companion's plan before they implement |
+| TeammateIdle / TaskCompleted hooks | Quality gates — enforce review before marking done |
+| Split-pane display | See all companions working at once (tmux/iTerm2) |
+
+### Current reality (why we're not using it yet)
+
+**Adoption:** No plugin has deeply integrated Agent Teams into a production workflow. Existing projects:
+- [agent-team-templates](https://github.com/kourosh-forti-hands/agent-team-templates) — prompt templates, not code
+- [teamclaude](https://github.com/albertnahas/teamclaude) — monitoring dashboard, doesn't create teams
+- [claude-code-teams-mcp](https://github.com/cs50victor/claude-code-teams-mcp) — reimplements the protocol as MCP server
+- [wshobson/agents](https://github.com/wshobson/agents) — thin wrapper via `/team-spawn` command
+- Superpowers — planned but not shipped (issue #429)
+
+**Known bugs (as of March 2026):**
+- TeamCreate spawns teammates that silently exit ([#34614](https://github.com/anthropics/claude-code/issues/34614))
+- Orphaned teams persist on disk, blocking future teams ([#32730](https://github.com/anthropics/claude-code/issues/32730))
+- Zombie teammates after session ends ([#27610](https://github.com/anthropics/claude-code/issues/27610))
+- TeamDelete blocked indefinitely by hung agents ([#31788](https://github.com/anthropics/claude-code/issues/31788))
+- Subagents have TeamCreate but lack the Agent tool to populate teams ([#32723](https://github.com/anthropics/claude-code/issues/32723))
+- Leadership state contradicts teammate state after session reset ([#28676](https://github.com/anthropics/claude-code/issues/28676))
+
+**Cost:** ~7x token usage vs standard sessions. Each teammate is a full Claude instance.
+
+**Limitations:** No session resumption, one team per session, no nested teams, lead is fixed, split panes require tmux/iTerm2.
+
+### How Fellowship would integrate Agent Teams (when ready)
+
+**The hybrid approach — subagents for Tier 1-3, Agent Teams for Tier 4:**
+
+| Tier | Model | Why |
+|---|---|---|
+| 1 — Direct | Gandalf alone | No dispatch needed |
+| 2 — One specialist | Subagent | Focused task, result is all that matters |
+| 3 — Sequential chain | Subagent chain | Dependencies between tasks, sequential by nature |
+| 4 — Parallel/debate | **Agent Teams** | Companions need to communicate, challenge, coordinate |
+
+**Fellowship's memory files (quest-log, learnings, product.md) are safe** because our design already says only Gandalf writes to shared memory. Companions report back; Gandalf curates. In Agent Teams mode, the same rule applies — teammates report via messages, the lead persists to files.
+
+**Companion skills would load automatically** (teammates load project skills). The companion identity (personality, boundaries) would need to come via the spawn prompt since teammate support for custom agent files is unclear.
+
+### Codebase analysis: plugins already using Agent Teams
+
+Four projects were studied for implementation patterns:
+
+**wshobson/agents** — most modular. 4 agent definitions, 7 commands, 6 skills. Key patterns:
+- Pre-flight check: verifies `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` before creating teams
+- Uses `subagent_type: "agent-teams:team-implementer"` to reference plugin-scoped agent files — meaning `subagent_type: "fellowship:gimli"` would work for our companions
+- Preset team compositions: review (3 reviewers), debug (3 investigators), feature (1 lead + 2 implementers), fullstack (1 lead + 3 implementers)
+- `/team-spawn`, `/team-feature`, `/team-review` as explicit entry points
+- ([Source](https://github.com/wshobson/agents/tree/main/plugins/agent-teams))
+
+**teamclaude** — most sophisticated. Full npm plugin with React dashboard. Key patterns:
+- Agent definitions as markdown with YAML frontmatter in `/agents/` — same format as Fellowship's companions
+- Programmatic prompt compilation (`prompt.ts`) — builds spawn prompts by composing project context, role instructions, and learnings
+- Structured messaging protocol: `TASK_ASSIGNED:`, `READY_FOR_REVIEW:`, `APPROVED:`, `ESCALATE:` prefixes for parseable communication
+- Process learnings (`PROCESS_LEARNING: <role> — <improvement>`) fed back into future sprints via `.teamclaude/learnings.md` — nearly identical to our Learnings field
+- 3-round max review cycle with automatic escalation to human
+- ([Source](https://github.com/albertnahas/teamclaude))
+
+**agent-team-templates** — pure prompt templates. Key patterns:
+- Three topologies: Solo (sequential), Squad (one persistent team), Swarm (per-wave ephemeral teams)
+- File ownership as first-class concept: "You OWN these files (only you edit them), You READ these files (shared, do not edit)"
+- Competing hypotheses pattern: spawn investigators + devil's advocate, use `blockedBy` for challenge phase
+- ([Source](https://github.com/kourosh-forti-hands/agent-team-templates))
+
+**claude-code-teams-mcp** — MCP reimplementation. Key patterns:
+- Atomic file writes for concurrent agent safety
+- Agent ID format: `name@team-name`
+- Color palette round-robin for visual differentiation
+- ([Source](https://github.com/cs50victor/claude-code-teams-mcp))
+
+### Dual-mode architecture: both models in one plugin
+
+Key finding: **Fellowship can support both subagents and Agent Teams without code conflicts.**
+
+- The env var `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` makes TeamCreate available but doesn't force any plugin to use it
+- The lead (Gandalf) has access to BOTH the Agent tool and TeamCreate simultaneously
+- Our agent files (gimli.md, gandalf.md) use the same markdown + YAML frontmatter format that Agent Teams plugins use
+- The orchestration skill can check the env var at runtime and branch behavior
+- Plugin `settings.json` can only set `agent` key — users must opt into Agent Teams via their own settings
+
+The toggle: Gandalf checks availability before dispatching. Agent Teams enabled → spawn as teammates. Not enabled → dispatch as subagents. Same companions, same skills, same reporting.
+
+### Preset Fellowship team compositions (future)
+
+Inspired by wshobson's preset pattern:
+
+| Preset | Companions | Use case |
+|---|---|---|
+| **Council** | Aragorn + Merry + Sam | Multi-perspective brainstorming, competing approaches |
+| **Review** | Legolas + Boromir + Pippin | Parallel code review (quality + security + tests) |
+| **Build** | Gimli + Pippin | Implementation + tests, coordinating on interfaces |
+| **Design** | Arwen + Bilbo + Aragorn | Design + copy + product perspective |
+
+### When to revisit
+
+- Agent Teams exits experimental status
+- The silent-exit bug (#34614) and orphaned-teams bug (#32730) are fixed
+- Fellowship has enough companions built to form meaningful teams
+
+---
+
 ## Full Source List
 
 ### Anthropic
@@ -210,3 +370,12 @@ When Recently Completed overflows, oldest items consolidate into What Exists and
 - [How Agent Handoffs Work in Multi-Agent Systems](https://towardsdatascience.com/how-agent-handoffs-work-in-multi-agent-systems/)
 - [Architecture Decision Records](https://adr.github.io/)
 - [claude-mem Plugin](https://github.com/thedotmack/claude-mem)
+
+### Agent Teams
+- [Claude Code Agent Teams Documentation](https://code.claude.com/docs/en/agent-teams)
+- [agent-team-templates](https://github.com/kourosh-forti-hands/agent-team-templates) — parameterized templates for TeamCreate workflows
+- [teamclaude](https://github.com/albertnahas/teamclaude) — real-time observability dashboard for Agent Teams
+- [claude-code-teams-mcp](https://github.com/cs50victor/claude-code-teams-mcp) — MCP server reimplementing the Agent Teams protocol
+- [Bug #34614 — TeamCreate spawns teammates that silently exit](https://github.com/anthropics/claude-code/issues/34614)
+- [Bug #32730 — Orphaned teams persist on disk](https://github.com/anthropics/claude-code/issues/32730)
+- [Bug #32723 — Subagents have TeamCreate but can't use it](https://github.com/anthropics/claude-code/issues/32723)
