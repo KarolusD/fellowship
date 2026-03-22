@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# SessionStart hook for Fellowship plugin
+# Reads fellowship-bootstrap.md and injects as session context.
+# This is a light menu of available agents and skills — NOT Gandalf's full identity.
+# Gandalf's personality activates through brainstorming/planning skills on demand.
+
+set -euo pipefail
+
+# Determine plugin root directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Read the Fellowship bootstrap (agent roster + skill menu)
+bootstrap_content=$(cat "${PLUGIN_ROOT}/hooks/fellowship-bootstrap.md" 2>/dev/null || echo "Error reading fellowship-bootstrap.md")
+
+if [ -z "$bootstrap_content" ]; then
+    bootstrap_content="Error: hooks/fellowship-bootstrap.md is empty or could not be read"
+fi
+
+# Escape string for JSON embedding using bash parameter substitution.
+# Each ${s//old/new} is a single C-level pass — orders of magnitude
+# faster than a character-by-character loop.
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+bootstrap_escaped=$(escape_for_json "$bootstrap_content")
+session_context="<FELLOWSHIP_CONTEXT>\n${bootstrap_escaped}\n</FELLOWSHIP_CONTEXT>"
+
+# Output context injection as JSON.
+# Cursor hooks expect additional_context.
+# Claude Code hooks expect hookSpecificOutput.additionalContext.
+# Claude Code reads BOTH fields without deduplication, so we must only
+# emit the field consumed by the current platform to avoid double injection.
+#
+# Uses printf instead of heredoc (cat <<EOF) to work around a bash 5.3+
+# bug where heredoc variable expansion hangs when content exceeds ~512 bytes.
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  # Cursor sets CURSOR_PLUGIN_ROOT (may also set CLAUDE_PLUGIN_ROOT) — emit additional_context
+  printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+  # Claude Code sets CLAUDE_PLUGIN_ROOT — emit only hookSpecificOutput
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$session_context"
+else
+  # Other platforms — emit additional_context as fallback
+  printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+fi
+
+exit 0

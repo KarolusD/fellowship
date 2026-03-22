@@ -1,0 +1,10 @@
+{
+  "name": "fellowship",
+  "description": "LotR-themed multi-agent system for solo product development",
+  "version": "0.1.0",
+  "author": {
+    "name": "Karolus"
+  },
+  "license": "MIT",
+  "keywords": ["agents", "orchestration", "multi-agent", "product-development"]
+}
