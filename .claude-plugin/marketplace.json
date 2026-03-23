@@ -1,0 +1,15 @@
+{
+  "name": "fellowship",
+  "description": "The Fellowship's orchestrator and companions",
+  "owner": {
+    "name": "Karolus",
+    "email": ""
+  },
+  "plugins": [
+    {
+      "name": "fellowship",
+      "version": "1.0.0",
+      "source": "./"
+    }
+  ]
+}

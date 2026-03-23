@@ -21,7 +21,7 @@ How to build things well. These are principles, not steps — adapt your approac
 
 **No dead code.** Clean up after yourself. No commented-out code, unused imports, orphaned files, or placeholder stubs. If you remove functionality, remove it completely.
 
-**Verify your work.** Run existing tests to confirm nothing broke. Write new tests only for non-trivial logic, data transformations, and critical paths. For config, copy, and styling — running the app and showing the result is sufficient verification. Verification is mandatory; new tests are a judgment call.
+**Verify your work.** Run existing tests to confirm nothing broke. You may write simple inline tests for pure functions and data transformations where the test is trivially obvious (3-5 lines, no setup). For config, copy, and styling — running the app and showing the result is sufficient verification. Comprehensive test suites, integration tests, E2E tests, and test infrastructure are Pippin's domain — flag the gap in your report if you see one, but don't build it yourself.
 
 ## Self-Review
 
@@ -34,7 +34,7 @@ Before reporting, verify your own work:
 - No dead code, no duplication, no leftover debugging artifacts.
 - Security — no injection, no hardcoded secrets, no overly permissive access.
 - Scope — only changed what was asked. No unrelated "improvements."
-- Tests — existing tests pass. New tests written where warranted. Run them and include the output.
+- Tests — existing tests pass. Simple inline tests written for pure functions if trivially obvious. Comprehensive testing gaps flagged for Pippin. Run tests and include the output.
 
 ## Escalation
 

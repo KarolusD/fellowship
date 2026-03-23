@@ -1,13 +1,12 @@
 # Quest Log
 
-**Last updated:** 2026-03-22
+**Last updated:** 2026-03-23
 
 ## Current
-- [ ] Build Legolas companion (code review agent)
-- [ ] End-to-end test: Gandalf → brainstorm → plan → dispatch Gimli → verify report
+- [ ] Validate agent dispatch — restart session, test Gandalf → Legolas → Pippin cycle
+- [ ] End-to-end test: Gandalf → Gimli → Legolas → Pippin cycle on a real task
 
 ## Up Next
-- [ ] Build Pippin companion (testing agent)
 - [ ] Build Boromir companion (security agent)
 - [ ] Build remaining companions (Aragorn, Merry, Sam, Arwen, Bilbo)
 - [ ] Build remaining skills per companion
@@ -15,19 +14,18 @@
 - [ ] Agent Teams dual-mode implementation — design spec ready at `docs/fellowship/specs/2026-03-22-dual-mode-architecture-design.md`
 
 ## Recently Completed
-- [x] Agent Teams research — codebase analysis of 4 plugins, dual-mode design spec drafted (2026-03-22)
-- [x] Plugin settings.json — auto-activates Gandalf on install (2026-03-22)
-- [x] Product context template — product.md for business objectives, users, stakeholders (2026-03-22)
-- [x] Quest log redesign — three-zone format with count-triggered consolidation (2026-03-22)
-- [x] Orchestration skill — tiered routing, dispatching, status handling, memory curation (2026-03-22)
-- [x] Gimli agent — first companion, loads engineering skill (2026-03-22)
-- [x] Gandalf refactor — identity only, loads orchestration skill (2026-03-22)
-- [x] Engineering skill — 7 principles, self-review, escalation, 4-status reporting (2026-03-22)
+- [x] Build Pippin agent + testing skill — three modes, spec-driven methodology, reporting format (2026-03-23)
+- [x] Fix agent dispatch — fully-qualified names in gandalf.md tools, cleaned up settings.json (2026-03-23)
+- [x] Update Gimli boundary + orchestration patterns for Pippin (2026-03-23)
+- [x] Pippin design spec — three modes, Gimli boundary, research-backed decisions (2026-03-23)
+- [x] Roster review — confirmed all roles, renamed Legolas, defined review cycle, expanded Arwen (2026-03-23)
+- [x] Build Legolas agent + code-review skill (2026-03-23)
+- [x] Gandalf voice rewrite — character-first prompt with calibration examples (2026-03-23)
 
 ## What Exists
-- **Agents:** Gandalf (orchestrator), Gimli (engineer)
-- **Skills:** orchestration, brainstorming, planning, engineering
+- **Agents:** Gandalf (orchestrator), Gimli (engineer), Legolas (code reviewer), Pippin (test engineer)
+- **Skills:** orchestration, brainstorming, planning, engineering, code-review, testing
 - **Infrastructure:** plugin.json, settings.json (auto-activate Gandalf), SessionStart hook, bootstrap
 - **Memory:** quest log (three-zone), quest log archive, learnings template, product context template
-- **Docs:** architecture spec, engineering research, engineering skill design spec, research doc with 30+ sources
+- **Docs:** architecture spec, engineering research, engineering skill design spec, roster review design spec, research doc with 30+ sources
 - **Repo:** pushed to github.com/KarolusD/fellowship

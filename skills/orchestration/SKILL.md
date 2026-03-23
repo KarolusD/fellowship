@@ -73,7 +73,7 @@ Each companion exists as both a **skill** (shared knowledge, loadable in session
 | **Aragorn** | Product Manager | `/aragorn` — product thinking, scope, requirements | Independent PRD analysis, requirement docs |
 | **Merry** | Technical Architect | `/merry` — system design, tradeoffs, data modeling | Independent architecture design |
 | **Gimli** | Engineer | Engineering standards reference | Implementation, building features |
-| **Legolas** | QA Engineer | `/legolas` — quick code review lens | Review, refactor, improve existing code |
+| **Legolas** | Code Reviewer | `/legolas` — quick code review lens | Review Gimli's work for spec compliance + quality |
 | **Boromir** | Security Engineer | `/boromir` — security review lens | Full security audit |
 | **Pippin** | Test Engineer | `/pippin` — testing methodology | Write and run tests |
 | **Sam** | User Researcher | `/sam` — quick research question | Market analysis, competitor review |
@@ -99,6 +99,100 @@ Companions report back with a status code. Your response depends on the status:
 
 If a companion includes Learnings in their report, decide whether to persist them to `docs/fellowship/learnings.md`.
 
+## The Review Cycle (Gimli → Legolas)
+
+After Gimli reports DONE on critical paths, dispatch Legolas to review. The cycle is strict — once review starts, it runs to completion.
+
+### When to dispatch Legolas
+
+- **Always review:** auth, payments, data mutations, public APIs, security-sensitive code
+- **Usually review:** new features with meaningful logic, multi-file changes
+- **Skip review:** config changes, copy updates, simple one-line fixes, non-code artifacts
+
+### The cycle
+
+```
+1. Gimli reports DONE
+2. Dispatch Legolas with:
+   - What Gimli built (from his report)
+   - The original task description / spec
+   - Git SHAs if available (Gimli's report should include these)
+3. Legolas reviews, reports back:
+   - APPROVED → task complete
+   - APPROVED_WITH_CONCERNS → read concerns, decide if action needed
+   - NEEDS_CONTEXT → provide missing info, Legolas re-reviews
+   - BLOCKED → assess and resolve
+4. If Legolas found Critical or Important issues:
+   - SendMessage to Gimli with the findings
+   - Gimli fixes, reports DONE
+   - Dispatch Legolas to re-review
+   - Repeat until APPROVED
+```
+
+### Key rules
+
+- **Never skip re-review after fixes.** If the issue was worth fixing, it's worth verifying.
+- **Gimli stays alive via SendMessage.** He preserves context of what he built, so fixes are fast and accurate. Don't dispatch a fresh Gimli — continue the existing one.
+- **Legolas never edits code.** Findings flow back through you to Gimli. This separation keeps the reviewer honest.
+- **You filter findings for Gimli.** If Legolas reports a mix of Critical, Important, and Minor issues, send Gimli the Critical and Important ones. Note Minor items but don't burn a round trip on them.
+
+### Handling Legolas's statuses
+
+| Status | Your action |
+|---|---|
+| **APPROVED** | Mark task complete. Proceed. |
+| **APPROVED_WITH_CONCERNS** | Read the concerns. If they're about correctness → send to Gimli. If they're observations → note and proceed. |
+| **NEEDS_CONTEXT** | Provide missing info (original task, specs, context) and re-dispatch Legolas. |
+| **BLOCKED** | Change too large? Ask Gimli to commit incrementally. Domain too unfamiliar? Dispatch Boromir or Pippin instead for specialized review. |
+
+## The Testing Cycle (Pippin)
+
+Pippin writes tests from the specification, not the implementation. This independence is his value — he catches what the builder misses because he derives expectations from the spec, not the code.
+
+### When to dispatch Pippin
+
+- **Test-after (most common):** After Legolas flags test gaps, or after Gimli completes work on non-trivial logic. Pippin fills the gaps.
+- **Test-first (complex logic):** Before Gimli builds, when the spec can be expressed as assertions. Pippin writes failing tests; Gimli implements against them.
+- **Test infrastructure (planned work):** Setting up frameworks, fixtures, CI test config. Goes on the quest log like any feature.
+
+### Test-after workflow
+
+```
+1. Gimli builds, reports DONE
+2. Legolas reviews, flags test gaps (or you identify them)
+3. Dispatch Pippin with:
+   - The original task description / spec (Pippin's source of truth)
+   - What Gimli built (from his report — files, interfaces)
+   - Specific test gaps if Legolas identified them
+4. Pippin writes tests from the spec, runs them, reports back:
+   - DONE → tests pass, coverage adequate
+   - DONE_WITH_CONCERNS → tests pass but something is off
+   - NEEDS_CONTEXT → spec is ambiguous, can't determine expected behavior
+   - BLOCKED → no test infrastructure, can't run tests
+5. If Pippin's tests reveal spec violations:
+   - SendMessage to Gimli with the findings
+   - Gimli fixes, reports DONE
+   - Dispatch Legolas to re-review if the fix is significant
+```
+
+### Test-first workflow
+
+```
+1. Dispatch Pippin with the spec/task description
+2. Pippin writes failing tests (red), reports DONE
+3. Dispatch Gimli with:
+   - The original task + Pippin's test files
+   - "Implement against these tests — they define the contract"
+4. Gimli implements until tests pass (green), reports DONE
+5. Dispatch Legolas to review both the tests and the implementation
+```
+
+### Key rules
+
+- **Pippin reads the spec, not the code.** His dispatch must include the task description or spec. Don't dispatch Pippin with just "write tests for auth.ts" — include what auth.ts should do.
+- **Spec violations are findings, not test errors.** If Pippin's tests fail because the code does something different from the spec, that's a report to Gimli, not a test fix.
+- **Pippin's tests can be reviewed.** For critical paths, dispatch Legolas to review Pippin's test files too.
+
 ## Dispatching Companions
 
 When you dispatch a companion, give them everything they need in the prompt:
@@ -122,7 +216,7 @@ You handle planning directly — it stays in-session, no agent dispatch needed.
 
 ### When planning is simple (Tier 1-2)
 
-For quick fixes, single-file changes, or clear tasks — skip the ceremony. Understand the task, do it or dispatch one agent. No plan or quest log update needed.
+For quick fixes, single-file changes, or clear tasks — skip the ceremony. Understand the task, do it or dispatch one agent. No plan needed. Add a one-line quest log entry to Recently Completed if the work is worth remembering — the archive ensures nothing is lost, and the consolidation rules keep the log lean.
 
 ### When planning matters (Tier 3-4)
 

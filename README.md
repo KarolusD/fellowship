@@ -14,7 +14,7 @@ Eight companions walk beside you. Each carries a distinct purpose — no two sha
 | 👑 | **Aragorn** | Product Manager | The king who served before he ruled — made the hardest calls, chose the Paths of the Dead when no other road remained. Decides *what* to build and *why*. |
 | 🍺 | **Merry** | Technical Architect | Most scholarly hobbit — mapped the Old Forest, studied Rohan's military history, wrote *The Reckoning of Years*. Decides *how* to build it. |
 | 🪓 | **Gimli** | Engineer | Dwarves built Khazad-dûm and reforged the gates of Minas Tirith in mithril. Builds new features, new code, new systems. |
-| 🏹 | **Legolas** | QA Engineer | Elven eyes that never miss — spotted threats from miles away, competed with Gimli at Helm's Deep. Improves existing code, reviews, refactors. Spots problems and fixes them. |
+| 🏹 | **Legolas** | Code Reviewer | Elven eyes that never miss — spotted threats from miles away, counted every kill at Helm's Deep. Reviews code for spec compliance and quality. Spots what others miss and names it precisely. |
 | 🗡️ | **Boromir** | Security Engineer | Defended the White City his whole life — and fell to the Ring's corruption. He knows what it costs to leave a door unguarded. |
 | 🍄 | **Pippin** | Test Engineer | Dropped a stone in Moria, looked into the Palantír, lit the beacons on instinct. *"Fool of a Took!"* — but the fool finds what careful minds overlook. |
 | 🌻 | **Sam** | User Researcher | Packed rope when others debated strategy. Elected Mayor seven times. No one understood what people actually needed better than Sam. |
@@ -27,7 +27,7 @@ Not every companion walks the full road. These allies aid the quest from their o
 
 | | Ally | Role | Why this character |
 |---|---|---|---|
-| 🌟 | **Arwen** | Product Designer | Wove the banner of the King — literally designed Aragorn's identity before he claimed it. Shapes visual language, user flows, and the world the user walks through. |
+| 🌟 | **Arwen** | Product Designer | Wove the banner of the King — literally designed Aragorn's identity before he claimed it. Shapes visual language, user flows, and audits the craft for UX, accessibility, and style consistency. |
 | 📖 | **Bilbo** | UX Writer | Author of *There and Back Again*. Won the riddle game on precision of language. Every word chosen with care. |
 
 <details>
@@ -51,9 +51,11 @@ The most analytical hobbit. Merry researched the Old Forest before the others se
 
 Son of Glóin, lord of the Glittering Caves. The Dwarves built Khazad-dûm, the greatest halls in Middle-earth. They forged mithril, carved stone into art, and built things meant to endure ages. After the War of the Ring, Gimli rebuilt the gates of Minas Tirith in steel and mithril — stronger and more beautiful than before. As Engineer, he builds what needs to exist. Reliable, relentless, proud of the work.
 
-### 🏹 Legolas — QA Engineer
+### 🏹 Legolas — Code Reviewer
 
-Elven eyes see what others cannot. Legolas spotted the Uruk-hai from miles away, counted kills at Helm's Deep, and never missed a shot. But he didn't just observe — he acted. He and Gimli fought side by side, pushing each other to excellence through friendly competition. As QA Engineer, he improves what exists — code review, refactoring, best practices. He spots what others miss and puts an arrow through it.
+Elven eyes see what others cannot. Legolas spotted the Uruk-hai from miles away, counted every kill at Helm's Deep, and never missed a shot. His famous competition with Gimli wasn't rivalry — it was two masters pushing each other higher. Gimli swung the axe; Legolas kept the count. Neither would have reached forty-two without the other.
+
+As Code Reviewer, Legolas reads what Gimli builds and names what isn't right — spec gaps, quality issues, missed edge cases. He doesn't fix the code himself. He reports findings with precision: what's wrong, where, why it matters, how to fix it. Gimli receives the findings and refines his work. Then Legolas reviews again. The cycle repeats until the craft is worthy. That's the competition at Helm's Deep, playing out in every review loop.
 
 ### 🗡️ Boromir — Security Engineer
 
@@ -69,7 +71,7 @@ Samwise Gamgee, gardener of Bag End. While others debated strategy, Sam packed r
 
 ### 🌟 Arwen — Product Designer
 
-Evenstar of her people, daughter of Elrond. Arwen wove the banner of the King — she literally designed Aragorn's identity before he claimed it. She chose a mortal life for love, understanding that great design demands sacrifice: you give up infinite options to commit to the one that matters. As Product Designer, she shapes the world the Ring-bearer walks through.
+Evenstar of her people, daughter of Elrond. Arwen wove the banner of the King — she literally designed Aragorn's identity before he claimed it. She chose a mortal life for love, understanding that great design demands sacrifice: you give up infinite options to commit to the one that matters. As Product Designer, she works in two modes: creating design artifacts in Figma (via Figma and Pencil MCPs), and auditing the Fellowship's output for UX quality, accessibility, SEO, and style consistency. She shapes the world the Ring-bearer walks through — and ensures everyone else's work fits within it.
 
 ### 📖 Bilbo — UX Writer
 
@@ -95,10 +97,10 @@ skills/                                agents/
   planning/SKILL.md                     aragorn.md   (loads: product-strategy)
   product-strategy/SKILL.md             merry.md     (loads: architecture)
   architecture/SKILL.md                 gimli.md     (loads: engineering, + per task)
-  engineering/SKILL.md                  legolas.md   (loads: code-review, + engineering)
+  engineering/SKILL.md                  legolas.md   (loads: code-review)
   code-review/SKILL.md                  boromir.md   (loads: security)
-  security/SKILL.md                     pippin.md    (loads: tdd)
-  tdd/SKILL.md                          arwen.md     (loads: design, + ux-writing)
+  security/SKILL.md                     pippin.md    (loads: testing)
+  testing/SKILL.md                      arwen.md     (loads: design, + ux-writing)
   design/SKILL.md                       bilbo.md     (loads: ux-writing)
   ux-writing/SKILL.md                   sam.md       (loads: research)
   research/SKILL.md
@@ -149,6 +151,36 @@ Gandalf classifies every task by weight before assembling the party.
 
 Gandalf never defaults to Tier 4. He is conservative — a solo dev's time is precious.
 
+### The Review Cycle
+
+When Gandalf dispatches Gimli for implementation work on critical paths (auth, payments, data mutations, public APIs), the build is followed by a review cycle inspired by [Superpowers](https://github.com/obra/superpowers)' subagent-driven-development:
+
+```
+Gandalf → Gimli builds, reports DONE
+  → Gandalf dispatches Legolas to review
+    → Legolas reviews (spec compliance + code quality), reports findings
+      → IF issues found:
+          Gandalf sends findings to Gimli (same subagent, preserves context)
+          → Gimli fixes, reports DONE
+          → Legolas re-reviews
+          → repeat until approved
+      → approved → task complete
+```
+
+**Key rules:**
+- Gandalf decides whether to dispatch Legolas — not all work needs review
+- Once review starts, the cycle runs to completion — no skipping re-review after fixes
+- Gimli stays alive via `SendMessage` — he remembers what he built, so fixes are fast
+- Legolas never edits code — findings flow back through Gandalf to Gimli
+
+Legolas categorizes findings by severity:
+
+| Severity | Meaning |
+|---|---|
+| **Critical** | Bugs, security issues, data loss risks, broken functionality |
+| **Important** | Architecture problems, missing features, poor error handling, test gaps |
+| **Minor** | Code style, optimization opportunities, documentation improvements |
+
 ### Agent Tool Scoping
 
 Each agent gets only the tools they need. This is a real Claude Code feature, not a convention.
@@ -156,9 +188,9 @@ Each agent gets only the tools they need. This is a real Claude Code feature, no
 | Agent | Tools | Why |
 |---|---|---|
 | **Gimli** | Read, Write, Edit, Glob, Grep, Bash | Full implementation — creates and modifies |
-| **Legolas** | Read, Edit, Glob, Grep, Bash | Improves existing code — modifies but doesn't create |
+| **Legolas** | Read, Glob, Grep, Bash | Pure reviewer — reads code, runs tests/lints, never edits |
 | **Pippin** | Read, Write, Edit, Glob, Grep, Bash | Creates test files and runs suites |
-| **Arwen** | Read, Glob, Grep + Figma MCP | Design exploration — visual tools, not code |
+| **Arwen** | Read, Glob, Grep + Figma MCPs, Pencil MCP | Design artifacts + UX/a11y/SEO audits |
 | **Sam** | Read, Glob, Grep, WebSearch, WebFetch | Research only — reads and searches |
 | **Aragorn** | Read, Glob, Grep, Edit | Requirements analysis — reads and refines docs |
 | **Merry** | Read, Glob, Grep, Edit | Architecture docs — reads and produces designs |
@@ -170,7 +202,7 @@ Each agent gets only the tools they need. This is a real Claude Code feature, no
 Unlike stateless workflow tools, the Fellowship remembers. Every agent has `memory: project` — persistent knowledge that accumulates across sessions.
 
 - **Gandalf** remembers via project memory — product context, key decisions, current state
-- **Agents** accumulate domain-specific knowledge — Legolas remembers code patterns he's flagged, Arwen remembers design directions explored and rejected
+- **Agents** accumulate domain-specific knowledge — Legolas remembers recurring issues he's flagged, Arwen remembers design directions explored and rejected
 - **Design decisions** live in `docs/decisions/` — version-controlled Architecture Decision Records readable by humans and agents alike
 
 ## Plugin Structure
@@ -194,7 +226,7 @@ fellowship/
     engineering/SKILL.md            ← gimli's handbook
     code-review/SKILL.md            ← /legolas
     security/SKILL.md               ← /boromir
-    tdd/SKILL.md                    ← pippin's handbook
+    testing/SKILL.md                ← pippin's handbook
     design/SKILL.md                 ← /arwen
     ux-writing/SKILL.md             ← /bilbo
     research/SKILL.md               ← /sam
@@ -206,7 +238,7 @@ fellowship/
     aragorn.md                      ← PM worker
     merry.md                        ← architecture worker
     gimli.md                        ← engineer worker
-    legolas.md                      ← QA worker
+    legolas.md                      ← code review worker
     pippin.md                       ← test worker
     arwen.md                        ← design worker
     sam.md                          ← research worker
@@ -237,7 +269,8 @@ The Fellowship is inspired by [Superpowers](https://github.com/obra/superpowers)
 | Capability | Superpowers | Fellowship |
 |---|---|---|
 | Workflow skills (brainstorm, plan, TDD, debug) | ✅ Mature, proven | ✅ Ported and improved |
-| Specialized agents | 1 (code-reviewer) | 9 (each with scoped tools + memory) |
+| Specialized agents | 1 (code-reviewer) | 10 (each with scoped tools + memory) |
+| Code review cycle | Two-stage (spec then quality), every task | Combined single-pass, Gandalf's judgment per task |
 | Product thinking | — | ✅ Aragorn |
 | Security | — | ✅ Boromir (skill + auto-hooks) |
 | Design workflows | — | ✅ Arwen (Figma MCP) |
