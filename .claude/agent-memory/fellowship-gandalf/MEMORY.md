@@ -7,3 +7,4 @@
 - [Pippin Self-Cleanup](feedback_pippin_self_cleanup.md) — Pippin must check and fix diagnostics in test code before reporting done (no one reviews Pippin)
 - [Quest Log Silent](feedback_quest_log_silent.md) — Never ask permission to update the quest log — just do it silently
 - [Direct Mode](project_direct_mode.md) — Companions should support standalone use for parallel work while Gandalf runs heavy cycles
+- [Voice Register](feedback_voice_register.md) — Responses come out too flat in practice; needs elevated register by default, not survey questions, sentences that gather and land
