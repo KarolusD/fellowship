@@ -1,3 +1,6 @@
 {
-  "agent": "fellowship:gandalf"
+  "agent": "fellowship:gandalf",
+  "statusLine": {
+    "command": "node hooks/fellowship-statusline.mjs"
+  }
 }

@@ -333,49 +333,162 @@ Inspired by wshobson's preset pattern:
 
 ---
 
-## Full Source List
+## Harness Engineering & Artifact Persistence
 
-### Anthropic
-- [How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system)
-- [Building Effective AI Agents](https://www.anthropic.com/research/building-effective-agents)
-- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Measuring Agent Autonomy](https://www.anthropic.com/research/measuring-agent-autonomy)
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+**What does serious production harness work look like?**
 
-### Engineering Practices
-- [Addy Osmani — My LLM Coding Workflow Going Into 2026](https://addyosmani.com/blog/ai-coding-workflow/)
-- [Simon Willison — Agentic Engineering Patterns (Feb 2026)](https://simonwillison.net/2026/Feb/23/agentic-engineering-patterns/)
-- [MIT Missing Semester 2026 — Agentic Coding](https://missing.csail.mit.edu/2026/agentic-coding/)
-- [CodeScene — Agentic AI Coding Best Practice Patterns](https://codescene.com/blog/agentic-ai-coding-best-practice-patterns-for-speed-with-quality)
-- [Armin Ronacher — Agentic Coding Recommendations](https://lucumr.pocoo.org/)
-- [Wiz — Secure AI Vibe Coding with Rules Files](https://www.wiz.io/blog/safer-vibe-coding-rules-files)
-- [ESCALATE.md — AI Agent Human Approval Protocol](https://escalate.md/)
+Most Claude Code plugins focus on skills and prompting. A smaller class of systems goes further — building deterministic execution harnesses that constrain, route, and recover AI work. Understanding these patterns informed several Fellowship design choices.
 
-### Memory, Context & Progress Tracking
-- [Mastra — Observational Memory Research](https://mastra.ai/research/observational-memory)
-- [Memory in the Age of AI Agents (arXiv:2512.13564)](https://arxiv.org/abs/2512.13564)
-- [A-MEM: Agentic Memory for LLM Agents (NeurIPS 2025)](https://arxiv.org/abs/2502.12110)
-- [Collaborative Memory (ICML 2025)](https://arxiv.org/abs/2505.18279)
-- [Context Engineering (Weaviate)](https://weaviate.io/blog/context-engineering)
-- [AI Agent Memory Management: When Markdown Files Are All You Need](https://dev.to/imaginex/ai-agent-memory-management-when-markdown-files-are-all-you-need-5ekk)
-- [Letta/MemGPT — Agent Memory Architecture](https://www.letta.com/blog/agent-memory)
-- [Mem0 — Intelligent Memory Consolidation](https://mem0.ai/research)
-- [Context Rot (Chroma Research)](https://research.trychroma.com/context-rot)
+### Key findings
 
-### Multi-Agent Systems
-- [Superpowers Plugin](https://github.com/obra/superpowers)
-- [OpenAI Agents SDK — Multi-agent orchestration](https://openai.github.io/openai-agents-python/multi_agent/)
-- [Steve Kinney — Sub-Agent Anti-Patterns](https://stevekinney.com/courses/ai-development/subagent-anti-patterns)
-- [How Agent Handoffs Work in Multi-Agent Systems](https://towardsdatascience.com/how-agent-handoffs-work-in-multi-agent-systems/)
-- [Architecture Decision Records](https://adr.github.io/)
-- [claude-mem Plugin](https://github.com/thedotmack/claude-mem)
+- **ep6-agent-harness** (The AI Automators) demonstrates a dual-harness model: "Deep Mode" (soft, LLM-directed work) versus a "Harness Engine" (hard, deterministic phases). In the harness engine, each phase is typed — `programmatic`, `llm_single`, `llm_agent`, `llm_batch_agents`, or `llm_human_input`. The type determines how much AI autonomy that phase has. ([Source](https://github.com/theaiautomators/claude-code-agentic-rag-series/tree/main/ep6-agent-harness))
 
-### Agent Teams
-- [Claude Code Agent Teams Documentation](https://code.claude.com/docs/en/agent-teams)
-- [agent-team-templates](https://github.com/kourosh-forti-hands/agent-team-templates) — parameterized templates for TeamCreate workflows
-- [teamclaude](https://github.com/albertnahas/teamclaude) — real-time observability dashboard for Agent Teams
-- [claude-code-teams-mcp](https://github.com/cs50victor/claude-code-teams-mcp) — MCP server reimplementing the Agent Teams protocol
-- [Bug #34614 — TeamCreate spawns teammates that silently exit](https://github.com/anthropics/claude-code/issues/34614)
-- [Bug #32730 — Orphaned teams persist on disk](https://github.com/anthropics/claude-code/issues/32730)
-- [Bug #32723 — Subagents have TeamCreate but can't use it](https://github.com/anthropics/claude-code/issues/32723)
+- **Inter-phase artifact writing** is the structural key: each phase writes its output to a versioned file (e.g., `contract-text.md → classification.md → chunks.md → report.docx`). The next phase reads only those files — not the full conversation history. This creates natural context resets at phase boundaries. Any phase can restart from the prior phase's artifact: crash recovery by design, not by luck.
+
+- **Virtual filesystem in Postgres**: rather than writing to disk, agents write to a virtual filesystem backed by Postgres. This enables replay, auditability, and state reconstruction without file system coupling. Artifacts are first-class objects, not ephemeral scratchpad text.
+
+- **Focused phase prompts** (~5-15 lines each): each phase agent receives a short, scoped prompt. The phase boundary is the context reset — you don't need a 400-line context dump because the artifact from the previous phase carries the information forward. This validates our principle of not overloading companion context.
+
+- **Sub-agent caps** (`MAX_SUB_AGENT_ROUNDS=15`): deterministic limits prevent runaway agent loops. The harness, not the agent, decides when to stop.
+
+- **barkain/workflow-orchestration** (the most sophisticated open-source Claude Code harness) implements similar patterns in production: task graph validation, delegation enforcement, inter-phase scratchpad artifacts (`$CLAUDE_SCRATCHPAD_DIR`), and per-wave parallel agent dispatch. Its hook system (14 Python hooks across 6 lifecycle events) enforces the harness at every layer — hooks are structural constraints, not suggestions. ([Source](https://github.com/barkain-plugins/workflow-orchestrator))
+
+### The design principle
+
+Across these implementations, a consistent pattern emerges:
+
+> **"Skills teach. Hooks enforce. Artifacts persist."**
+
+- **Skills** provide methodology and domain knowledge — they make agents smarter.
+- **Hooks** create structural constraints — they prevent agents from going off-course at the architectural level.
+- **Artifacts** are the memory bridge between phases — they make work resumable, auditable, and inspectable across sessions.
+
+### What this means for Fellowship
+
+| Concept | Our current approach | Potential evolution |
+|---|---|---|
+| Inter-phase artifacts | Quest log + learnings (session-level) | Phase-level artifact files for Tier 4 work |
+| Context resets | Companions dispatch fresh | Already implemented — each companion starts clean |
+| Focused prompts | Gandalf scopes dispatch context per task | Already aligned with the principle |
+| Validation gates | health-check.mjs (structural) | Hook-based quality gates for Tier 3+ work |
+| Artifact persistence | Subagent output is transient | `CLAUDE_SCRATCHPAD_DIR` pattern for durable output |
+
+The most actionable insight: for Tier 4 work, companions should write output to files rather than just returning text. Work is then resumable if a phase fails mid-stream. This is the artifact persistence pattern applied directly to Fellowship.
+
+### What we chose NOT to adopt
+
+- **Mandatory delegation enforcement** (barkain's primary hook): Fellowship doesn't block direct tool use. Gandalf is trusted to route appropriately, not coerced by hooks.
+- **Virtual filesystem / database-backed state**: too heavy for a solo-dev plugin. File-based artifacts via `CLAUDE_SCRATCHPAD_DIR` achieve most of the benefit.
+- **Phase type system with hard typing**: Fellowship's Tier system is a simpler form of the same idea — how much autonomy does this task need?
+
+---
+
+## Context Engineering & Token Efficiency
+
+**What happens to a session when context fills up?**
+
+Context rot is the gradual degradation of AI output quality as the context window fills with conversation history. Most Claude Code plugins ignore this problem. Two implementations studied here address it directly, from opposite directions.
+
+### Key findings
+
+- **GSD (Get Shit Done)** treats context rot as the primary enemy. Its architecture doc states this explicitly: fresh context per agent "eliminates context rot — the quality degradation that happens as an AI fills its context window with accumulated conversation." Every spawned agent starts with a clean 200K window. ([Source](https://github.com/gsd-build/get-shit-done))
+
+- **GSD's context monitor hook** is a PostToolUse hook that injects context warnings *into the agent's conversation* — not just the user's status bar. At ≤35% remaining: "Avoid starting new complex work." At ≤25%: "Context nearly exhausted — stop immediately and save state to files." The key insight: the agent needs to know when it's running out, or it will cheerfully start a large refactor with 15% of context left and produce degraded output. ([Source](https://github.com/gsd-build/get-shit-done/blob/main/hooks/gsd-context-monitor.js))
+
+- **context-mode** (5.7K GitHub stars) operates at the MCP transport layer — sandboxing tool outputs before they reach the context window. Benchmarks: a 56KB Playwright snapshot becomes 299 bytes (99% reduction), 20 GitHub issues compress from 59KB to 1.1KB (98%). A complete session shrinks from 315KB to 5.4KB, extending from ~30 minutes to ~3 hours. ([Source](https://github.com/mksglu/context-mode))
+
+- **context-mode's PreCompact strategy**: before compaction fires, a `PreCompact` hook indexes all session events into SQLite FTS5 tables and builds a priority-tiered XML snapshot (≤2KB) containing only essential state: active files, current tasks, key decisions, unresolved errors. On resume, BM25 ranking retrieves only semantically relevant history — not the full dump. Don't restore everything after compaction — only what matters for the current task.
+
+- **GSD's artifact pyramid**: each workflow stage writes structured Markdown artifacts that feed forward. `PROJECT.md → REQUIREMENTS.md → ROADMAP.md → CONTEXT.md → RESEARCH.md → PLAN.md → SUMMARY.md`. Any stage can restart from the prior artifact without going back to the beginning. The context handoff is in the file, not the conversation.
+
+### What this means for Fellowship
+
+| Problem | context-mode approach | GSD approach | Fellowship current |
+|---------|----------------------|--------------|-------------------|
+| Tool output bloat | Sandbox at transport layer | Thin workflows + focused prompts | Focused companion prompts |
+| Post-compaction loss | FTS5+BM25 semantic retrieval | Structured artifact files | Three-zone quest log |
+| Agent context exhaustion | Not addressed (MCP handles it) | Context monitor hook (agent-visible) | **Not addressed — gap** |
+| Session continuity | Priority-tiered snapshot | `pause-work` → `continue-here.md` | Quest log |
+
+Two improvements are directly actionable:
+
+1. **Context monitor hook**: a PostToolUse hook that warns companions (via `additionalContext`) when context is running low. At ≤35%: write progress to a file, wrap up. At ≤25%: stop immediately. This prevents the most common failure mode — context-exhausted companions reporting "DONE" when they actually ran out of context mid-task.
+
+2. **Quest log as a compact snapshot**: the three-zone quest log (Current / Recently Completed / What Exists) already follows the PreCompact principle — a minimal but complete snapshot of session state. The 80-line budget is intentional: small enough to survive compaction without noise.
+
+### What we chose NOT to adopt
+
+- **Sandbox architecture (context-mode)**: requires MCP integration and changing how every tool call is processed. Too invasive for Fellowship's lightweight philosophy.
+- **FTS5/SQLite retrieval**: requires database infrastructure. The quest log achieves most of the benefit with a markdown file.
+- **Artificial context compression**: GSD avoids this too — fresh context windows beat compression.
+
+---
+
+## Skill Evaluation
+
+**How do you know if your skills actually work?**
+
+This is an unsolved question for most Claude Code plugins. Skills are written on intuition, tested informally, and never measured. SkillsBench is the first framework to answer this question rigorously.
+
+### Key findings
+
+- **SkillsBench** measures skill effectiveness with statistical rigor: 84 tasks drawn from real-world coding work, 5 independent trials per task, 95% confidence intervals on all metrics. ([Source](https://www.skillsbench.ai/))
+
+- **The baseline result**: Claude Code + Opus 4.5 without skills passes **22.0%** of tasks. With skills applied, the same model passes **45.3%** — a **+23.3 percentage point improvement**. Skills more than doubled the effective pass rate. This is the first published quantitative evidence that Claude Code skills have meaningful impact on objective task completion.
+
+- **Custom skill evaluation**: SkillsBench uses the Harbor framework with Docker-based task isolation. Adding custom skills means writing a YAML task definition and dropping it in the `tasks/` directory. The evaluation pipeline is identical — 5 trials, CI calculation, comparison to baseline. Fellowship skills could be benchmarked the same way.
+
+- **Task reward model**: tasks return a reward between 0.0 and 1.0 based on test pass rates. A task that passes 3 of 5 tests gets reward 0.6. This partial credit model means improvement is visible even before a skill reaches full reliability — early signal, not just pass/fail.
+
+- **What SkillsBench actually measures**: skill reliability on objective tasks, not subjective output quality. "Does the skill help Claude complete this specific coding task?" is a cleaner signal than "does this skill prompt look well-written?"
+
+### What this means for Fellowship
+
+Fellowship's engineering and testing skills are the strongest candidates for benchmarking — both involve objective correctness (does the code work? do the tests pass?). Running them through SkillsBench would answer:
+
+- Is the engineering skill actually making Gimli produce better code?
+- Does the testing skill improve Pippin's test coverage and correctness?
+- Which sections of a skill contribute most to improvement?
+
+This is a future evaluation track, not immediate work — but knowing the infrastructure exists matters. Before Fellowship has a full roster of companions, building a benchmark suite for Gimli's core skill is a concrete way to validate the approach rather than assuming it.
+
+### The AutoResearch loop — skills that improve themselves
+
+Beyond static benchmarking, Karpathy's AutoResearch methodology applied to Claude Code skills offers a lighter-weight path to continuous skill improvement. ([Source](https://www.mindstudio.ai/blog/karpathy-autoresearch-applied-to-claude-code-skills))
+
+The loop:
+1. **Define binary assertions** (`eval.json`) — each test passes or fails. No LLM grading. "Does the output contain X?" is always better than "Is the output good?"
+2. **Run overnight** — Claude Code reads the skill file, runs 30-50 eval cycles autonomously, analyzes which assertions fail, proposes edits to the skill, re-runs
+3. **Review in the morning** — pass rate history shows which changes helped
+
+Results from early practitioners: skills starting at 40-50% pass rates reach 75-85% after overnight optimization. Binary assertions are the key — deterministic, fast, no ambiguity. ([Source](https://www.mindstudio.ai/blog/autoresearch-eval-loop-binary-tests-claude-code-skills))
+
+**The `eval.json` pattern** (from Composio's [awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills)): a skill directory contains both the `SKILL.md` and an `eval.json` with test assertions. The assertions define what "this skill works" means concretely. This is the connective tissue between SkillsBench (external evaluation) and AutoResearch (internal improvement loop).
+
+**For Fellowship:** the engineering skill and testing skill are the first candidates. Start by writing 5-10 binary assertions per skill — not to run overnight yet, but to clarify what "Gimli does this well" and "Pippin does this well" actually means. Once the assertions exist, the AutoResearch loop can run.
+
+### What we chose NOT to do (yet)
+
+- **Benchmark-driven skill writing**: writing skills *to pass benchmarks* rather than to encode real methodology optimizes for the wrong thing. The benchmark validates; the methodology comes first.
+- **Automated evaluation on every skill change**: the Docker + Harbor overhead isn't justified for a single-developer plugin at this stage.
+- **AutoResearch on every skill**: start with the two skills that have objective outputs (engineering, testing). Brainstorming and orchestration skills are harder to evaluate objectively — the assertions are less clear.
+
+---
+
+## Sources
+
+**Directly incorporated into Fellowship design:**
+- [Building Effective AI Agents](https://www.anthropic.com/research/building-effective-agents) — Anthropic's patterns for multi-agent orchestration
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) — hook system, agent memory, plugin conventions
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) — "Skills teach. Hooks enforce. Artifacts persist."
+- [Superpowers Plugin](https://github.com/obra/superpowers) — 4-status reporting protocol, subagent-driven development
+- [GSD (Get Shit Done)](https://github.com/gsd-build/get-shit-done) — context monitor hook, model profiles, wave execution, debug knowledge base
+- [wshobson/agents](https://github.com/wshobson/agents) — Agent Teams integration, team composition patterns
+- [SkillsBench](https://www.skillsbench.ai/) — 22.0%→45.3% pass rate improvement with skills; validation that skills work
+- [awesome-claude-skills (Composio)](https://github.com/ComposioHQ/awesome-claude-skills) — skill-creator pattern, AutoResearch eval loop
+- [Claude Code Agent Teams Documentation](https://code.claude.com/docs/en/agent-teams) — dual-mode architecture, TeamCreate protocol
+- [Context Rot (Chroma Research)](https://research.trychroma.com/context-rot) — context degradation model; informed quest log 80-line budget
+
+**Studied but not incorporated:**
+- [context-mode](https://github.com/mksglu/context-mode) — MCP context virtualization (too invasive for Fellowship's philosophy)
+- [barkain/workflow-orchestrator](https://github.com/barkain-plugins/workflow-orchestrator) — sophisticated harness (patterns distilled into reference-implementations.md)
