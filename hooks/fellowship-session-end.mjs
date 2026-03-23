@@ -4,7 +4,7 @@
 // Must complete within 1.5 seconds — file append is fast, this is fine.
 //
 // Input (stdin): { session_id, reason, cwd, hook_event_name }
-// Output: { "hookSpecificOutput": { "hookEventName": "SessionEnd" } }
+// Output: {} (SessionEnd hooks don't use hookSpecificOutput — only PreToolUse/UserPromptSubmit/PostToolUse do)
 
 import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -18,9 +18,7 @@ function readStdin() {
 }
 
 function respond() {
-  process.stdout.write(JSON.stringify({
-    hookSpecificOutput: { hookEventName: 'SessionEnd' }
-  }) + '\n');
+  process.stdout.write(JSON.stringify({}) + '\n');
 }
 
 let input = {};

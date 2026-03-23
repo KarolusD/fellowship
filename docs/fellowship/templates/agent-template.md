@@ -11,7 +11,7 @@ tools:
   - Glob
   - Grep
   - Bash
-  - Agent(fellowship:gimli, ...)  # Gandalf only
+  - Agent(fellowship:gimli, fellowship:legolas, fellowship:pippin, fellowship:arwen)  # Gandalf only — add new companions here as they're built
 skills:
   - brainstorming  # only if this agent brainstorms with the user
   - planning       # only if this agent creates plans
