@@ -17,7 +17,7 @@ Eight companions walk beside you. Each carries a distinct purpose — no two sha
 | 🏹 | **Legolas** | Code Reviewer | Elven eyes that never miss — spotted threats from miles away, counted every kill at Helm's Deep. Reviews code for spec compliance and quality. Spots what others miss and names it precisely. |
 | 🗡️ | **Boromir** | Security Engineer | Defended the White City his whole life — and fell to the Ring's corruption. He knows what it costs to leave a door unguarded. |
 | 🍄 | **Pippin** | Test Engineer | Dropped a stone in Moria, looked into the Palantír, lit the beacons on instinct. *"Fool of a Took!"* — but the fool finds what careful minds overlook. |
-| 🌻 | **Sam** | User Researcher | Packed rope when others debated strategy. Elected Mayor seven times. No one understood what people actually needed better than Sam. |
+| 🌻 | **Sam** | DevOps / Infrastructure | Gardener of Bag End — tended the soil so others could grow. Maintained the supply lines into Mordor. Elected Mayor seven times. He knew that the unglamorous work of tending keeps everything else alive. |
 
 > *You (Frodo) are the ninth. You carry the weight. You make the final call. The Fellowship serves the Ring-bearer.*
 
@@ -28,7 +28,7 @@ Not every companion walks the full road. These allies aid the quest from their o
 | | Ally | Role | Why this character |
 |---|---|---|---|
 | 🌟 | **Arwen** | Product Designer | Wove the banner of the King — literally designed Aragorn's identity before he claimed it. Shapes visual language, user flows, and audits the craft for UX, accessibility, and style consistency. |
-| 📖 | **Bilbo** | UX Writer | Author of *There and Back Again*. Won the riddle game on precision of language. Every word chosen with care. |
+| 📖 | **Bilbo** | Technical Writer | Author of *There and Back Again* and *Translations from the Elvish*. Built the map that made the Lonely Mountain quest repeatable. Clear writing is a form of engineering. |
 
 <details>
 <summary><strong>Extended lore — why each character fits their role</strong></summary>
@@ -41,7 +41,7 @@ Gandalf assembled the Fellowship. He chose the path through Moria, knew when to 
 
 ### 👑 Aragorn — Product Manager
 
-Heir of Isildur, Ranger of the North, and the king who chose to serve before he ruled. Aragorn made the hardest calls — leading the Fellowship after Gandalf fell, choosing the Paths of the Dead when no other road remained. He healed with athelas because a true leader understands what his people need. As Product Manager, he decides *what* to build and *why* — requirements, scope, priorities, product strategy.
+Heir of Isildur, Ranger of the North, and the king who chose to serve before he ruled. Aragorn made the hardest calls — leading the Fellowship after Gandalf fell, choosing the Paths of the Dead when no other road remained. He healed with athelas because a true leader understands what his people need. As Product Manager, he decides *what* to build and *why* — requirements, scope, priorities, product strategy. Before the Fellowship undertakes major parallel work (Tier 4), Gandalf consults Aragorn. Scope that seems necessary often isn't, and a king who walked the Paths of the Dead knows what roads lead to ruin.
 
 ### 🍺 Merry — Technical Architect
 
@@ -65,17 +65,21 @@ Captain of Gondor's armies, eldest son of the Steward. Boromir spent his life de
 
 The youngest hobbit, the most impulsive. Pippin dropped a stone down a well in Moria — and woke something in the deep. He looked into the Palantír when told not to touch it. He lit the beacons of Gondor on instinct. His curiosity was reckless, uncontrollable — and it revealed things that careful planning never would have found. As Test Engineer, he pokes things to see what breaks. Trial and error incarnate.
 
-### 🌻 Sam — User Researcher
+### 🌻 Sam — DevOps / Infrastructure
 
-Samwise Gamgee, gardener of Bag End. While others debated strategy, Sam packed rope — because someone had to think about what the journey actually needed. He understood ordinary life: food, shelter, the weight of a day's walk. He carried Frodo up Mount Doom because he understood the burden even if he couldn't carry the Ring itself. The Shire elected him Mayor seven times. As User Researcher, he gathers knowledge before the quest begins — practical, grounded, thorough.
+Samwise Gamgee, gardener of Bag End. While the Fellowship debated strategy, Sam tended the supply lines — rope, lembas, cooking pots. Nothing glamorous. All of it essential. Gardening is infrastructure: you tend the soil so that others can grow; you maintain the paths that carry the load; you know which routes get muddy after rain and plan accordingly. After the war, he rebuilt the Shire from the ground up — not with swords, but with good earth and patient work.
+
+As DevOps Engineer, he tends the infrastructure the quest runs on — pipelines, deployments, environments, tooling. Practical, grounded, never celebrated until something breaks.
 
 ### 🌟 Arwen — Product Designer
 
-Evenstar of her people, daughter of Elrond. Arwen wove the banner of the King — she literally designed Aragorn's identity before he claimed it. She chose a mortal life for love, understanding that great design demands sacrifice: you give up infinite options to commit to the one that matters. As Product Designer, she works in two modes: creating design artifacts in Figma (via Figma and Pencil MCPs), and auditing the Fellowship's output for UX quality, accessibility, SEO, and style consistency. She shapes the world the Ring-bearer walks through — and ensures everyone else's work fits within it.
+Evenstar of her people, daughter of Elrond. Arwen wove the banner of the King — she literally designed Aragorn's identity before he claimed it. She chose a mortal life for love, understanding that great design demands sacrifice: you give up infinite options to commit to the one that matters. As Product Designer, she works in three modes: creating design artifacts in Figma (via Figma and Pencil MCPs), auditing the Fellowship's output for UX quality, accessibility, SEO, and style consistency, and shaping the words that frame the interface — microcopy, empty states, error messages, onboarding text. She shapes the world the Ring-bearer walks through — and ensures everyone else's work fits within it.
 
-### 📖 Bilbo — UX Writer
+### 📖 Bilbo — Technical Writer
 
-Author of *There and Back Again*, compiler of *Translations from the Elvish*, and the hobbit who proved that the right words at the right moment can slay a dragon — or at least stall one. Bilbo's riddle game with Gollum was won on precision of language. As UX Writer, every word is chosen with the care of a hobbit who knows that *"I don't know half of you half as well as I should like"* sounds simple but carries the weight of a lifetime.
+Author of *There and Back Again*, compiler of *Translations from the Elvish*, keeper of maps and histories. Bilbo documented Middle-earth before it was fashionable. He understood that the map is what makes a journey repeatable — that a quest worth doing is worth recording. His riddle game with Gollum was won on precision of language; his books were won on clarity of structure.
+
+As Technical Writer, he writes the documentation, guides, API references, and decision records that make the quest legible to the next Ring-bearer — or the next developer joining the project.
 
 </details>
 
@@ -85,32 +89,22 @@ The Fellowship is a Claude Code plugin. When installed, it provides specialized 
 
 ### Two Layers: Skills and Agents
 
-Inspired by the principle: *"Skills are the shared library of expertise. Agents are the specialists who apply it."*
+**Skills** are cross-cutting workflow patterns — methodology that multiple agents or the user can invoke mid-session. They're loaded in-session for thinking, brainstorming, and planning. They're not agent-specific craft.
 
-**Skills** are domain knowledge — methodology, standards, process. They can be loaded in-session (for thinking) or by agents (to enhance their work). Multiple agents can load the same skill. Gandalf's brainstorming and planning methodology lives here.
-
-**Agents** are workers — each with scoped tools, project memory, and role-reinforcing personality. They're dispatched for independent work and load relevant skills for the task.
+**Agents** are self-contained specialists. Each agent's craft methodology lives inline in their agent file — not in a separate skill. This means each agent is a complete document: character, role, craft, behavioral contracts, and reporting format in one place. No cross-referencing, no drift.
 
 ```
 skills/                                agents/
-  brainstorming/SKILL.md                gandalf.md   (standalone orchestrator)
-  planning/SKILL.md                     aragorn.md   (loads: product-strategy)
-  product-strategy/SKILL.md             merry.md     (loads: architecture)
-  architecture/SKILL.md                 gimli.md     (loads: engineering, + per task)
-  engineering/SKILL.md                  legolas.md   (loads: code-review)
-  code-review/SKILL.md                  boromir.md   (loads: security)
-  security/SKILL.md                     pippin.md    (loads: testing)
-  testing/SKILL.md                      arwen.md     (loads: design, + ux-writing)
-  design/SKILL.md                       bilbo.md     (loads: ux-writing)
-  ux-writing/SKILL.md                   sam.md       (loads: research)
-  research/SKILL.md
-  debugging/SKILL.md
-  verification/SKILL.md
+  brainstorming/SKILL.md                gandalf.md   ← orchestrator (craft inline)
+  planning/SKILL.md                     gimli.md     ← engineer (craft inline)
+                                        legolas.md   ← code reviewer (craft inline)
+                                        pippin.md    ← test engineer (craft inline)
+                                        [aragorn, merry, boromir, arwen, sam, bilbo — Phase 5]
 ```
 
-**Slash commands** use character names: `/aragorn` loads product strategy thinking. `/boromir` loads security review. The character is the entry point, the skill is the knowledge.
+**Slash commands** use character names: `/aragorn` loads product strategy thinking. `/boromir` loads security review. The character is the entry point; the skill is the knowledge.
 
-**Skills enhance agents.** Gimli building a UI component loads the design skill. Legolas reviewing auth code loads the security skill. A skill adds capability the agent doesn't have on its own.
+**Skills stay cross-cutting.** A skill worth creating is one multiple agents could load — debugging patterns, framework-specific methodology, workflow processes. Agent-specific craft belongs in the agent file.
 
 ### Getting Started
 
@@ -129,7 +123,7 @@ That's it. Every session starts with Gandalf guiding the quest.
 claude --agent fellowship:gandalf
 ```
 
-**Mid-session** — type `/fellowship:orchestration` to load the orchestration methodology into your current session. You get the full methodology (routing, dispatching, planning) but without Gandalf's personality or persistent agent memory.
+**Mid-session** — type `/fellowship:brainstorming` or `/fellowship:planning` to load a skill into your current session without spinning up a full agent.
 
 **Opt out per project** — if you don't want Gandalf on a specific project, add to that project's `.claude/settings.json`:
 ```json
@@ -147,9 +141,11 @@ Gandalf classifies every task by weight before assembling the party.
 | **1** | Gandalf handles it alone | None |
 | **2** | Gandalf loads a skill or dispatches one agent | Minimal |
 | **3** | Sequential chain — agent output feeds the next | ~3-5 min |
-| **4** | Parallel agents where safe | ~8-15 min |
+| **4** | Aragorn consulted on scope, then parallel agents | ~8-15 min |
 
-Gandalf never defaults to Tier 4. He is conservative — a solo dev's time is precious.
+Gandalf never defaults to Tier 4. He is conservative — a solo dev's time is precious. Each tier is determined by scoring signals: multiple files, critical path, new feature, user signals of thoroughness push up; single file, config-only, clear fix, user signals speed push down. The score anchors classification without replacing judgment. Borderline cases always err toward the lower tier.
+
+Before Tier 4 work begins, Gandalf consults Aragorn. Scope that seems necessary in the moment often isn't — and a king who walked the Paths of the Dead knows the difference between a necessary gamble and a foolish one.
 
 ### The Review Cycle
 
@@ -191,7 +187,7 @@ Each agent gets only the tools they need. This is a real Claude Code feature, no
 | **Legolas** | Read, Glob, Grep, Bash | Pure reviewer — reads code, runs tests/lints, never edits |
 | **Pippin** | Read, Write, Edit, Glob, Grep, Bash | Creates test files and runs suites |
 | **Arwen** | Read, Glob, Grep + Figma MCPs, Pencil MCP | Design artifacts + UX/a11y/SEO audits |
-| **Sam** | Read, Glob, Grep, WebSearch, WebFetch | Research only — reads and searches |
+| **Sam** | Read, Glob, Grep, Bash, WebSearch, WebFetch | Infrastructure ops — reads, searches, runs commands |
 | **Aragorn** | Read, Glob, Grep, Edit | Requirements analysis — reads and refines docs |
 | **Merry** | Read, Glob, Grep, Edit | Architecture docs — reads and produces designs |
 | **Boromir** | Read, Glob, Grep, Bash | Security audit — reads code, runs checks |
@@ -219,31 +215,19 @@ fellowship/
     fellowship-bootstrap.md         ← agent roster + skill menu
 
   skills/
-    brainstorming/SKILL.md          ← Gandalf's brainstorming methodology
-    planning/SKILL.md               ← Gandalf's planning methodology
-    product-strategy/SKILL.md       ← /aragorn
-    architecture/SKILL.md           ← /merry
-    engineering/SKILL.md            ← gimli's handbook
-    code-review/SKILL.md            ← /legolas
-    security/SKILL.md               ← /boromir
-    testing/SKILL.md                ← pippin's handbook
-    design/SKILL.md                 ← /arwen
-    ux-writing/SKILL.md             ← /bilbo
-    research/SKILL.md               ← /sam
-    debugging/SKILL.md              ← workflow (ported)
-    verification/SKILL.md           ← workflow (ported)
+    brainstorming/SKILL.md          ← cross-cutting, any agent
+    planning/SKILL.md               ← cross-cutting, any agent
+    [future: debugging, security, framework-specific skills]
 
   agents/
-    gandalf.md                      ← standalone orchestrator
-    aragorn.md                      ← PM worker
-    merry.md                        ← architecture worker
-    gimli.md                        ← engineer worker
-    legolas.md                      ← code review worker
-    pippin.md                       ← test worker
-    arwen.md                        ← design worker
-    sam.md                          ← research worker
-    boromir.md                      ← security worker
-    bilbo.md                        ← UX writing worker
+    gandalf.md                      ← orchestrator (craft + protocol inline)
+    gimli.md                        ← engineer (craft inline)
+    legolas.md                      ← code reviewer (craft inline)
+    pippin.md                       ← test engineer (craft inline)
+    [aragorn, merry, boromir, arwen, sam, bilbo — Phase 5]
+
+  docs/fellowship/templates/
+    agent-template.md               ← canonical structure for new agents
 ```
 
 ## Research
@@ -256,7 +240,7 @@ See **[Research Behind Fellowship's Design](docs/fellowship/research.md)** for t
 
 - **The Ring must not grow heavier.** Scope is sacred. Every addition is a burden.
 - **Not every quest needs the full Fellowship.** Most tasks need one companion, maybe two.
-- **Skills are shared, agents are specialized.** Knowledge lives in skills. Workers apply it.
+- **Agent craft lives in the agent.** Each agent is a complete document — no cross-referencing required. Skills are for cross-cutting patterns, not agent-specific methodology.
 - **Insight flows forward.** Each agent's output feeds the next — no work is lost.
 - **Memory endures.** Key decisions persist across sessions. The quest doesn't restart every morning.
 - **Latency is the enemy.** Default conservative. Escalate only when the task demands it.
@@ -275,7 +259,7 @@ The Fellowship is inspired by [Superpowers](https://github.com/obra/superpowers)
 | Security | — | ✅ Boromir (skill + auto-hooks) |
 | Design workflows | — | ✅ Arwen (Figma MCP) |
 | UX writing | — | ✅ Bilbo |
-| User research | — | ✅ Sam |
+| DevOps / Infrastructure | — | ✅ Sam |
 | Project memory | — | ✅ Persistent across sessions |
 | Agent memory | — | ✅ Domain-specific knowledge accumulation |
 | Tool scoping | All tools to all agents | Scoped per agent |
