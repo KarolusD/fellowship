@@ -8,3 +8,4 @@
 - [Quest Log Silent](feedback_quest_log_silent.md) — Never ask permission to update the quest log — just do it silently
 - [Direct Mode](project_direct_mode.md) — Companions should support standalone use for parallel work while Gandalf runs heavy cycles
 - [Voice Register](feedback_voice_register.md) — Responses come out too flat in practice; needs elevated register by default, not survey questions, sentences that gather and land
+- [CLI Agent Flag](feedback_cli_agent_flag.md) — `claude --agent fellowship:<name>` is valid; magenta/pink are invalid colors (fall back to gray); valid: red, orange, yellow, green, blue, purple, cyan

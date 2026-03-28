@@ -17,6 +17,8 @@ const __dirname = dirname(__filename);
 const ROOT = resolve(__dirname, '..');
 
 const KNOWN_TOOLS = new Set(['Read', 'Write', 'Edit', 'Glob', 'Grep', 'Bash', 'WebFetch', 'WebSearch', 'Agent']);
+// MCP tools follow the pattern mcp__<server>__<tool> or mcp__<server>__* — always valid
+const isMcpTool = (tool) => tool.startsWith('mcp__');
 
 const results = [];
 
@@ -210,6 +212,7 @@ function checkAgents() {
     const tools = Array.isArray(fm.tools) ? fm.tools : fm.tools ? [fm.tools] : [];
     const unknownTools = [];
     for (const tool of tools) {
+      if (isMcpTool(tool)) continue; // MCP wildcard patterns are always valid
       // Handle Agent(...) style tool refs — extract base name
       const baseName = tool.match(/^(\w+)/)?.[1] || tool;
       if (!KNOWN_TOOLS.has(baseName)) {
@@ -248,22 +251,16 @@ function checkSkillDirs() {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Cross-references — orphan skills
+// 7. Cross-references — skill integrity
 // ---------------------------------------------------------------------------
+// Note: skills are loaded contextually by Gandalf, not declared in agent frontmatter.
+// We only verify that any skill explicitly referenced in agent frontmatter resolves
+// to a real directory — that check already happens in checkAgents().
+// We do NOT flag skills without agent references as orphans; they are valid.
 
 function checkCrossRefs() {
-  const skillsDir = resolve(ROOT, 'skills');
-  if (!existsSync(skillsDir)) return;
-
-  const dirs = readdirSync(skillsDir).filter(d => {
-    return statSync(join(skillsDir, d)).isDirectory();
-  });
-
-  for (const dir of dirs) {
-    if (!referencedSkills.has(dir)) {
-      fail(`skills/${dir}/ \u2014 orphan skill (no agent references it)`);
-    }
-  }
+  // No-op: orphan detection removed — skills are Gandalf-loaded, not agent-declared.
+  // Future: add a check that every SKILL.md has a non-empty `description` frontmatter field.
 }
 
 // ---------------------------------------------------------------------------

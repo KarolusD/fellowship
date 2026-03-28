@@ -170,7 +170,7 @@ Ask the user to review the written spec before moving on.
 Not every brainstorm leads to implementation:
 
 - **Need deeper architecture?** → Dispatch Merry for system design
-- **Need research first?** → Dispatch Sam for competitive analysis or technical research
+- **Need research first?** → Search the web directly, or dispatch Sam if the question is infrastructure or deployment-related
 
 Don't force a single path. The quest determines the next step.
 

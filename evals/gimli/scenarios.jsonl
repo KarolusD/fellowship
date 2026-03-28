@@ -1,0 +1,10 @@
+{"id":"gi001","input":"Add a null check to the parseConfig function in src/config.ts"}
+{"id":"gi002","input":"Fix the failing test in tests/auth.test.ts — it errors on undefined user"}
+{"id":"gi003","input":"Add email validation to the user registration form"}
+{"id":"gi004","input":"Refactor the database connection to use a connection pool"}
+{"id":"gi005","input":"Add request logging middleware to all API routes"}
+{"id":"gi006","input":"The signup button is missing a loading state — add one"}
+{"id":"gi007","input":"Extract the payment calculation logic into a separate utility function"}
+{"id":"gi008","input":"Add rate limiting to the /api/auth/login endpoint"}
+{"id":"gi009","input":"Fix the TypeScript error on line 42 of src/handlers/user.ts"}
+{"id":"gi010","input":"Update the README installation steps — step 3 is outdated"}

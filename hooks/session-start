@@ -2,8 +2,10 @@
 # SessionStart hook for Fellowship plugin
 # Injects fellowship-bootstrap.md plus optional project-level context files:
 #   - docs/fellowship/quest-log.md  (if file exists)
-#   - docs/fellowship/learnings.md  (if more than 22 lines — template is 22 lines)
 #   - docs/fellowship/product.md    (if it has real content; otherwise a notice)
+#
+# Note: learnings.md is no longer injected — each agent has native persistent memory
+# (memory: project) that accumulates domain-specific knowledge across sessions.
 #
 # Each file is wrapped in a labeled XML tag and combined into one additionalContext string.
 
@@ -48,20 +50,7 @@ if [ -f "$QUEST_LOG" ]; then
     fi
 fi
 
-# ── 3. learnings.md (if more than 22 lines — template is exactly 22 lines) ───
-LEARNINGS="${FELLOWSHIP_DIR}/learnings.md"
-if [ -f "$LEARNINGS" ]; then
-    line_count=$(wc -l < "$LEARNINGS" 2>/dev/null || echo 0)
-    if [ "$line_count" -gt 22 ]; then
-        learnings_content=$(cat "$LEARNINGS" 2>/dev/null || echo "")
-        if [ -n "$learnings_content" ]; then
-            learnings_escaped=$(escape_for_json "$learnings_content")
-            session_context="${session_context}\\n<LEARNINGS>\\n${learnings_escaped}\\n</LEARNINGS>"
-        fi
-    fi
-fi
-
-# ── 4. product.md (real content check) ───────────────────────────────────────
+# ── 3. product.md (real content check) ───────────────────────────────────────
 # "Real content" = any line that is not empty, not a markdown comment (<!--),
 # and not a section heading (##) followed by an empty line.
 # Strategy: strip blank lines, comment lines (<!-- ... -->), and heading lines (##),

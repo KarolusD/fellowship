@@ -20,7 +20,6 @@ The most critical design question for any multi-agent system. Fellowship uses a 
 
 - **OpenAI Agents SDK** distinguishes "agents as tools" (orchestrator keeps control) from "handoffs" (ownership transfers). Fellowship uses the tools pattern — Gandalf keeps control, companions assist. ([Source](https://openai.github.io/openai-agents-python/multi_agent/))
 
-- **Klarna's production pattern** emphasizes: "Every handoff has an explicit contract" and architectures should "fail gracefully rather than cascade." Fellowship's reporting protocol is that contract. ([Source](https://www.klarna.com/international/press/klarna-internal-data-shows-ai-utilization-up-across-customer-facing-and-internal-workstreams/))
 
 ### What we chose NOT to do
 

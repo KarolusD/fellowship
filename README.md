@@ -4,9 +4,9 @@ A LotR-themed multi-agent system for solo product development. Built as a [Claud
 
 You are Frodo. You carry the Ring — your product, your vision, your burden. The Fellowship exists to serve you on the quest.
 
-## The Fellowship of Nine
+## The Fellowship
 
-Eight companions walk beside you. Each carries a distinct purpose — no two share the same blade.
+Ten companions walk beside you. Each carries a distinct purpose — no two share the same blade.
 
 | | Name | Role | Why this character |
 |---|---|---|---|
@@ -18,17 +18,10 @@ Eight companions walk beside you. Each carries a distinct purpose — no two sha
 | 🗡️ | **Boromir** | Security Engineer | Defended the White City his whole life — and fell to the Ring's corruption. He knows what it costs to leave a door unguarded. |
 | 🍄 | **Pippin** | Test Engineer | Dropped a stone in Moria, looked into the Palantír, lit the beacons on instinct. *"Fool of a Took!"* — but the fool finds what careful minds overlook. |
 | 🌻 | **Sam** | DevOps / Infrastructure | Gardener of Bag End — tended the soil so others could grow. Maintained the supply lines into Mordor. Elected Mayor seven times. He knew that the unglamorous work of tending keeps everything else alive. |
-
-> *You (Frodo) are the ninth. You carry the weight. You make the final call. The Fellowship serves the Ring-bearer.*
-
-### Allies
-
-Not every companion walks the full road. These allies aid the quest from their own realms — invoked selectively, when their craft is needed.
-
-| | Ally | Role | Why this character |
-|---|---|---|---|
 | 🌟 | **Arwen** | Product Designer | Wove the banner of the King — literally designed Aragorn's identity before he claimed it. Shapes visual language, user flows, and audits the craft for UX, accessibility, and style consistency. |
 | 📖 | **Bilbo** | Technical Writer | Author of *There and Back Again* and *Translations from the Elvish*. Built the map that made the Lonely Mountain quest repeatable. Clear writing is a form of engineering. |
+
+> *You (Frodo) are the eleventh. You carry the weight. You make the final call. The Fellowship serves the Ring-bearer.*
 
 <details>
 <summary><strong>Extended lore — why each character fits their role</strong></summary>
@@ -95,11 +88,16 @@ The Fellowship is a Claude Code plugin. When installed, it provides specialized 
 
 ```
 skills/                                agents/
-  brainstorming/SKILL.md                gandalf.md   ← orchestrator (craft inline)
-  planning/SKILL.md                     gimli.md     ← engineer (craft inline)
-                                        legolas.md   ← code reviewer (craft inline)
-                                        pippin.md    ← test engineer (craft inline)
-                                        [aragorn, merry, boromir, arwen, sam, bilbo — Phase 5]
+  brainstorming/SKILL.md                gandalf.md   ← orchestrator
+  planning/SKILL.md                     aragorn.md   ← product manager
+  ux-audit/SKILL.md                     merry.md     ← architect
+  accessibility/SKILL.md               gimli.md     ← engineer
+  visual-exploration/SKILL.md           legolas.md   ← code reviewer
+                                        boromir.md   ← security engineer
+                                        pippin.md    ← test engineer
+                                        arwen.md     ← product designer
+                                        sam.md       ← devops / infra
+                                        bilbo.md     ← technical writer
 ```
 
 **Slash commands** use character names: `/aragorn` loads product strategy thinking. `/boromir` loads security review. The character is the entry point; the skill is the knowledge.
@@ -183,15 +181,15 @@ Each agent gets only the tools they need. This is a real Claude Code feature, no
 
 | Agent | Tools | Why |
 |---|---|---|
-| **Gimli** | Read, Write, Edit, Glob, Grep, Bash | Full implementation — creates and modifies |
+| **Gimli** | Read, Write, Edit, Glob, Grep, Bash | Full implementation — creates and modifies files |
 | **Legolas** | Read, Glob, Grep, Bash | Pure reviewer — reads code, runs tests/lints, never edits |
 | **Pippin** | Read, Write, Edit, Glob, Grep, Bash | Creates test files and runs suites |
-| **Arwen** | Read, Glob, Grep + Figma MCPs, Pencil MCP | Design artifacts + UX/a11y/SEO audits |
-| **Sam** | Read, Glob, Grep, Bash, WebSearch, WebFetch | Infrastructure ops — reads, searches, runs commands |
-| **Aragorn** | Read, Glob, Grep, Edit | Requirements analysis — reads and refines docs |
-| **Merry** | Read, Glob, Grep, Edit | Architecture docs — reads and produces designs |
-| **Boromir** | Read, Glob, Grep, Bash | Security audit — reads code, runs checks |
-| **Bilbo** | Read, Glob, Grep, Edit | Copy review — reads and refines text |
+| **Arwen** | Read, Write, Edit, Glob, Grep, Bash + Figma MCPs | Design artifacts — creates specs, edits them, manipulates Figma |
+| **Aragorn** | Read, Write, Glob, Grep, Bash | Creates requirements docs |
+| **Merry** | Read, Write, Glob, Grep, Bash | Creates architecture docs and ADRs |
+| **Boromir** | Read, Glob, Grep, Bash | Security audit — reads code, runs checks, never modifies |
+| **Sam** | Read, Write, Edit, Glob, Grep, Bash | Creates and updates CI configs, deployment files, env audits |
+| **Bilbo** | Read, Write, Edit, Glob, Grep, Bash | Creates and updates READMEs, changelogs, inline docs |
 
 ### Project Memory
 
@@ -220,11 +218,10 @@ fellowship/
     [future: debugging, security, framework-specific skills]
 
   agents/
-    gandalf.md                      ← orchestrator (craft + protocol inline)
-    gimli.md                        ← engineer (craft inline)
-    legolas.md                      ← code reviewer (craft inline)
-    pippin.md                       ← test engineer (craft inline)
-    [aragorn, merry, boromir, arwen, sam, bilbo — Phase 5]
+    gandalf.md aragorn.md merry.md   ← orchestrator, PM, architect
+    gimli.md legolas.md boromir.md   ← engineer, reviewer, security
+    pippin.md arwen.md sam.md        ← testing, design, infra
+    bilbo.md                         ← technical writer
 
   docs/fellowship/templates/
     agent-template.md               ← canonical structure for new agents
@@ -232,7 +229,7 @@ fellowship/
 
 ## Research
 
-Fellowship's architecture is informed by academic research, industry best practices, and production experience from existing multi-agent systems. Every major design decision — from the orchestration pattern to the memory architecture to the engineering principles — traces back to published findings.
+Fellowship's design draws on blog posts, open-source projects, and a handful of papers about multi-agent systems, memory architecture, and AI coding patterns. Not science — but not guesswork either.
 
 See **[Research Behind Fellowship's Design](docs/fellowship/research.md)** for the full breakdown with sources.
 
@@ -267,19 +264,7 @@ The Fellowship is inspired by [Superpowers](https://github.com/obra/superpowers)
 
 ## Status
 
-🚧 Under construction — the Fellowship is being assembled.
-
-## Phased Rollout
-
-The research says: don't build everything at once. Start with Gandalf, add companions as you feel the gap.
-
-1. **Gandalf** — CLAUDE.md + hooks + session-start
-2. **Gimli** — your first agent, for implementation
-3. **Aragorn + Merry** — product and architecture skills
-4. **Legolas** — code review agent
-5. **Boromir** — security skill + auto-hooks
-6. **Arwen + Bilbo** — design and copy
-7. **Pippin + Sam** — testing and research
+Usable. All ten companions are built. The thing to validate now is real-project orchestration — finding the gaps that only appear when the stakes are real.
 
 ## License
 

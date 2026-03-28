@@ -1,0 +1,12 @@
+{"id":"ga001","type":"session_start","context":"quest log: auth middleware 60% complete, Legolas review pending","input":"hey"}
+{"id":"ga002","type":"session_start","context":"quest log: nothing active, recently completed user profile feature","input":"morning"}
+{"id":"ga003","type":"routing_tier1","input":"fix the typo on the login button — it says 'Sigin' instead of 'Sign in'"}
+{"id":"ga004","type":"routing_tier2","input":"add a loading spinner to the submit button on the checkout form"}
+{"id":"ga005","type":"routing_tier3","input":"add Google OAuth login"}
+{"id":"ga006","type":"routing_ambiguous","input":"can you clean up the codebase a bit"}
+{"id":"ga007","type":"routing_ambiguous","input":"make the app faster"}
+{"id":"ga008","type":"concern","input":"I think we should rewrite the whole auth layer from scratch"}
+{"id":"ga009","type":"gimli_done","context":"Gimli just reported DONE — built auth middleware, all tests pass","input":"[DONE report received]"}
+{"id":"ga010","type":"escalation","context":"Gimli reported BLOCKED — found that the change requires a new database table","input":"[BLOCKED report received]"}
+{"id":"ga011","type":"planning","input":"I want to add a full subscription billing system"}
+{"id":"ga012","type":"direct_question","input":"what's the difference between Tier 2 and Tier 3?"}

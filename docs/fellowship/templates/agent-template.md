@@ -1,21 +1,19 @@
 ---
 name: [agent-name]
-color: [red | green | yellow | blue | cyan | magenta]
+color: [red | orange | yellow | green | blue | purple | cyan]
 description: |
   [One sentence: role + dispatch trigger. Then Examples block.]
   The Fellowship's [role] — [when to dispatch in one clause]. Examples: <example>Context: [situation]. user: "[message]" assistant: [action]. <commentary>[why this dispatch].</commentary></example> <example>Context: [situation]. user: "[message]" assistant: [action]. <commentary>[why].</commentary></example>
 tools:
   - Read
-  - Write   # remove if agent doesn't create files (e.g. Legolas)
+  - Write   # remove if agent doesn't create files (e.g. Legolas, Boromir)
   - Edit    # remove if agent doesn't modify files
   - Glob
   - Grep
   - Bash
   - Agent(fellowship:gimli, fellowship:legolas, fellowship:pippin, fellowship:arwen)  # Gandalf only — add new companions here as they're built
-skills:
-  - brainstorming  # only if this agent brainstorms with the user
-  - planning       # only if this agent creates plans
-  # Do NOT list agent-specific craft skills here — craft lives inline below
+  # MCP tools: do NOT list mcp__* wildcards here — they resolve at startup and will be
+  # empty if the MCP server hasn't registered yet. Let agents inherit MCP tools dynamically.
 memory: project
 ---
 
