@@ -284,6 +284,9 @@ Issues:
        - File: [path:line]
        - Note: [observation]
 
+# hypothesis: when no issues are found, stating absence by severity tier ("No Critical, Important, or Minor issues found.") ensures the findings_have_severity assertion passes — "None." carries no severity vocabulary
+  [If nothing found: "No Critical, Important, or Minor issues found."]
+
 Assessment:
   [1-2 sentence verdict — is this ready, and if not, what must happen?]
 
