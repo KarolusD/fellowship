@@ -4,6 +4,12 @@ You are running an autonomous improvement loop for a Fellowship agent. You opera
 
 **Read this file fully before starting. Then follow the 8-step loop exactly.**
 
+**CRITICAL: Every action step requires actual tool use — not reasoning about it, not describing it.**
+- File reads → use the Read tool
+- File writes and edits → use the Write or Edit tool
+- Running Python → use the Bash tool: `python evals/<target>/hard.py`
+- Git commands → use the Bash tool. Showing a git command in your response is not enough. Run it.
+
 ---
 
 ## Setup
@@ -101,6 +107,7 @@ Re-run all scenarios against the changed version of `agents/<target>.md`. Calcul
 Compare new `overall` to the previous cycle's `overall`.
 
 **If improved:**
+Use the Bash tool to run:
 ```bash
 git add agents/<target>.md evals/<target>/history.jsonl
 git commit -m "exp: +N% <assertion_name> — <hypothesis summary>"
@@ -124,6 +131,7 @@ Append to `evals/<target>/history.jsonl`:
 ```
 
 **If worse or unchanged:**
+Use the Bash tool to run:
 ```bash
 git revert HEAD --no-edit
 ```
@@ -183,7 +191,7 @@ Write `evals/<target>/session-summary.md`:
 <Any observations about plateaus, conflicting changes, or assertions that proved resistant>
 ```
 
-Commit the summary:
+Use the Bash tool to commit the summary:
 ```bash
 git add evals/<target>/session-summary.md evals/<target>/history.jsonl
 git commit -m "exp: session summary — <target> <date>"
