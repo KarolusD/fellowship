@@ -102,7 +102,7 @@ Stop when done and write the session summary.")
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
     echo "Commits that held:"
-    git -C "$worktree" log --oneline | grep "^exp:" || echo "  (none)"
+    git -C "$worktree" log --oneline | grep "exp:" || echo "  (none)"
     echo ""
     echo "Full diff against main:"
     git -C "$worktree" diff main -- "agents/${agent}.md"
