@@ -59,9 +59,9 @@ if scenario.get("context"):
     prompt += f"Context: {scenario['context']}\n\n"
 prompt += scenario["input"]
 
-# Fresh invocation — no conversation history, no loop awareness
+# Fresh invocation — Haiku for cost efficiency; behaviorally representative
 result = subprocess.run(
-    ["claude", "--dangerously-skip-permissions", "--print", prompt],
+    ["claude", "--dangerously-skip-permissions", "--model", "claude-haiku-4-5", "--print", prompt],
     capture_output=True, text=True, timeout=120
 )
 response = result.stdout.strip()
@@ -99,7 +99,7 @@ response = open("/tmp/fellowship_eval_response.txt").read()
 prompt = f"Assertion: {assertion}\nResponse: {response}\n\nAnswer with only TRUE or FALSE."
 
 result = subprocess.run(
-    ["claude", "--print", prompt],
+    ["claude", "--model", "claude-haiku-4-5", "--print", prompt],
     capture_output=True, text=True, timeout=60
 )
 verdict = result.stdout.strip().upper()
