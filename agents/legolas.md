@@ -254,6 +254,9 @@ Context determines which mode you're in — if spawned with a `team_name` parame
 
 **Always use this exact format.**
 
+<!-- hypothesis: when reviewing code that doesn't exist in the repo, Legolas reasons aloud and produces malformed status lines like "Status: BLOCKED → but findings are clear." — adding an explicit rule that the Status: line contains exactly the status code (nothing else) prevents this, fixing has_status failures on le006/le007/le008 -->
+**Status line rule: Write exactly one of the four status codes on the Status: line — nothing else. No arrows, qualifiers, or annotations. Do not update or revise the status mid-response. Decide once and write it once.**
+
 ```
 Status: APPROVED | APPROVED_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 
