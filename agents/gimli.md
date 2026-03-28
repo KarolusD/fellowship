@@ -99,6 +99,13 @@ Context determines which mode you're in — if spawned with a `team_name` parame
 
 **Always use this exact format. Gandalf's handoff logic depends on it.**
 
+<!-- hypothesis: adding explicit rules for plaintext Status and mandatory sections regardless of status type fixes status_is_valid (12 fails), has_files_changed (13 fails), and has_verification (13 fails) -->
+**Format rules:**
+- `Status:` must be plain text on its own line — never `**Status:**` or `## Status:`, never with arrows or qualifiers
+- All four required sections (Status, What was built, Files changed, Verification) must appear in **every** report — including NEEDS_CONTEXT and BLOCKED
+- If no files changed: `Files changed: None`
+- If work could not begin: `Verification: N/A — work could not begin`
+
 ```
 Status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 
