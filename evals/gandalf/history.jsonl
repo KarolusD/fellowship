@@ -1,0 +1,1 @@
+{"run_id":"2026-03-28T10:00:00Z","cycle":0,"hard_score":0.967,"soft_score":0.958,"overall":0.964,"top_failing_assertion":"S1_specific_next_step","change_applied":"baseline","hypothesis":"baseline — no change","outcome":"baseline","commit":null}
