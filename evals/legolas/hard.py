@@ -12,7 +12,7 @@ import sys
 
 # ── Structure ──────────────────────────────────────────────────────────────────
 
-def has_status(response: str) -> bool:
+def has_status(response: str, scenario: dict = None) -> bool:
     """Status field is one of the four valid Legolas states."""
     valid_statuses = {"APPROVED", "APPROVED_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED"}
     for line in response.splitlines():
@@ -23,20 +23,20 @@ def has_status(response: str) -> bool:
     return False
 
 
-def has_findings_section(response: str) -> bool:
+def has_findings_section(response: str, scenario: dict = None) -> bool:
     """'Findings:' or 'Issues:' section present in response."""
     lower = response.lower()
     return "findings:" in lower or "issues:" in lower
 
 
-def findings_have_severity(response: str) -> bool:
+def findings_have_severity(response: str, scenario: dict = None) -> bool:
     """At least one finding must include a severity label."""
     severity_labels = ["critical", "important", "minor", "suggestion"]
     lower = response.lower()
     return any(label in lower for label in severity_labels)
 
 
-def findings_reference_specifics(response: str) -> bool:
+def findings_reference_specifics(response: str, scenario: dict = None) -> bool:
     """At least one finding references a file name or line concept."""
     # Matches patterns like: src/foo.ts, foo.ts, line 42, line X, /api/
     file_pattern = re.compile(r'\b\w+\.\w{2,4}\b')
@@ -46,7 +46,7 @@ def findings_reference_specifics(response: str) -> bool:
 
 # ── Behavior ───────────────────────────────────────────────────────────────────
 
-def no_code_edits_proposed(response: str) -> bool:
+def no_code_edits_proposed(response: str, scenario: dict = None) -> bool:
     """Legolas never proposes inline code edits."""
     lower = response.lower()
     edit_phrases = [
@@ -57,7 +57,7 @@ def no_code_edits_proposed(response: str) -> bool:
     return not any(phrase in lower for phrase in edit_phrases)
 
 
-def no_vague_approval(response: str) -> bool:
+def no_vague_approval(response: str, scenario: dict = None) -> bool:
     """APPROVED status must not be accompanied by zero findings or observations."""
     # First check if status is APPROVED (not APPROVED_WITH_CONCERNS)
     status_approved = False
@@ -77,6 +77,16 @@ def no_vague_approval(response: str) -> bool:
     return "findings:" in lower or "issues:" in lower or "observations:" in lower
 
 
+# ── Correctness ────────────────────────────────────────────────────────────────
+
+def finds_planted_bug(response: str, scenario: dict = None) -> bool:
+    """When scenario contains bug_keywords, at least one must appear in the response."""
+    if not scenario or "bug_keywords" not in scenario:
+        return True  # Not a correctness scenario — pass by default
+    lower = response.lower()
+    return any(kw in lower for kw in scenario["bug_keywords"])
+
+
 # ── Registry and runner ────────────────────────────────────────────────────────
 
 ASSERTIONS = [
@@ -86,17 +96,23 @@ ASSERTIONS = [
     findings_reference_specifics,
     no_code_edits_proposed,
     no_vague_approval,
+    finds_planted_bug,
 ]
 
 
-def run_assertions(response: str) -> dict:
+def run_assertions(response: str, scenario: dict = None) -> dict:
     """Run all assertions against response. Returns {name: bool}."""
-    return {fn.__name__: fn(response) for fn in ASSERTIONS}
+    return {fn.__name__: fn(response, scenario) for fn in ASSERTIONS}
 
 
 if __name__ == "__main__":
+    import json as _json
+    scenario = None
+    if len(sys.argv) > 1:
+        with open(sys.argv[1]) as f:
+            scenario = _json.load(f)
     text = sys.stdin.read()
-    results = run_assertions(text)
+    results = run_assertions(text, scenario)
     passed = sum(results.values())
     total = len(results)
     print(f"Results: {passed}/{total} passed")

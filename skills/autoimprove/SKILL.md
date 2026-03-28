@@ -38,14 +38,76 @@ Load `history.jsonl` to understand what has been tried before. Do not repeat dis
 
 ### Step 2 — BASELINE
 
+**CRITICAL: Do not simulate responses internally.** Simulation produces circular results — the same model that wrote the agent instructions also knows what "correct" looks like. Real invocations are required. Each scenario must invoke a fresh, isolated claude process.
+
 For each scenario in `scenarios.jsonl`:
 
-1. Simulate: given this `input` (and `context` if present), what would `<target>` respond? Produce a realistic response as if you were that agent following its current `agents/<target>.md` instructions.
-2. Run `hard.py` assertions against the simulated response:
-   - Call `run_assertions(response)` from `hard.py` — this returns `{assertion_name: bool}`.
-   - Or evaluate each assertion function manually if you cannot execute Python.
-3. If `soft.md` exists: for each assertion line in `soft.md`, judge it TRUE or FALSE using `claude-haiku-4-5` (or the fastest available model). Pass the assertion as a yes/no question with the response text. Keep soft assertions simple — one plain sentence, binary answer.
-4. Record: `{scenario_id, assertion_name, passed, response_preview}` for each assertion.
+**1. Invoke the agent directly** using the Bash tool. Run this Python script for each scenario (substituting actual target and scenario values):
+
+```bash
+python3 << 'PYEOF'
+import subprocess, json
+
+target = "<target>"  # e.g. "gimli"
+scenario_json = '<paste full scenario JSON line here>'
+scenario = json.loads(scenario_json)
+
+# Build prompt: full agent file + optional context + scenario input
+agent_instructions = open(f"agents/{target}.md").read()
+prompt = agent_instructions + "\n\n---\n\n"
+if scenario.get("context"):
+    prompt += f"Context: {scenario['context']}\n\n"
+prompt += scenario["input"]
+
+# Fresh invocation — no conversation history, no loop awareness
+result = subprocess.run(
+    ["claude", "--dangerously-skip-permissions", "--print", prompt],
+    capture_output=True, text=True, timeout=120
+)
+response = result.stdout.strip()
+
+# Save for assertion runner
+open("/tmp/fellowship_eval_response.txt", "w").write(response)
+open("/tmp/fellowship_eval_scenario.json", "w").write(scenario_json)
+
+print(f"=== RESPONSE (scenario {scenario['id']}) ===")
+print(response[:600] + "..." if len(response) > 600 else response)
+PYEOF
+```
+
+Run once per scenario. Response is saved to `/tmp/fellowship_eval_response.txt`.
+
+**2. Run hard assertions** using the Bash tool:
+
+```bash
+# Use the PROTECTED copy — never evals/<target>/hard.py directly
+python3 /tmp/fellowship_eval_<target>_hard.py \
+  /tmp/fellowship_eval_scenario.json \
+  < /tmp/fellowship_eval_response.txt
+```
+
+The protected copy was placed at `/tmp/fellowship_eval_<target>_hard.py` by the runner before the worktree was created. It cannot be modified by this loop.
+
+**3. If `soft.md` exists:** for each assertion line, judge it using the Bash tool:
+
+```bash
+python3 << 'PYEOF'
+import subprocess
+
+assertion = "<assertion text from soft.md>"
+response = open("/tmp/fellowship_eval_response.txt").read()
+prompt = f"Assertion: {assertion}\nResponse: {response}\n\nAnswer with only TRUE or FALSE."
+
+result = subprocess.run(
+    ["claude", "--print", prompt],
+    capture_output=True, text=True, timeout=60
+)
+verdict = result.stdout.strip().upper()
+print(f"{'PASS' if verdict.startswith('TRUE') else 'FAIL'}: {assertion[:80]}")
+PYEOF
+```
+
+**4. Record:** `{scenario_id, assertion_name, passed, response_preview}` for each assertion.
 
 Calculate scores:
 - `hard_score` = (assertions passing across all scenarios) / (total assertions × scenarios)
@@ -70,6 +132,8 @@ Append baseline entry to `evals/<target>/history.jsonl`:
   "commit": null
 }
 ```
+
+**Timing note:** Real invocations take 15–30 seconds each. A full baseline across all scenarios takes 5–15 minutes. This is expected and correct. Do not shortcut by simulating.
 
 ---
 
@@ -233,5 +297,7 @@ Keep soft assertions simple. If an assertion requires aesthetic judgment or nuan
 - You are in a git worktree. The live project is not affected.
 - Every cycle either commits or reverts. Nothing is left in limbo.
 - `--dangerously-skip-permissions` was passed by the runner — you have full file access in this worktree.
-- Do not read or modify files outside this worktree.
+- **Do not modify `evals/<target>/hard.py`, `evals/<target>/soft.md`, or `evals/<target>/scenarios.jsonl`.** These are the measurement tool, not the lever. The loop improves `agents/<target>.md` only.
+- Run assertions against `/tmp/fellowship_eval_<target>_hard.py` (the protected copy) — never the one in `evals/<target>/hard.py`, which could have been inadvertently changed.
+- Do not read or modify files outside this worktree (except `/tmp/fellowship_eval_*` files placed there by the runner).
 - Do not push to remote. The human reviews and merges in the morning.

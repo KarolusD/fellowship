@@ -474,6 +474,33 @@ Results from early practitioners: skills starting at 40-50% pass rates reach 75-
 
 ---
 
+---
+
+## AutoImprove — Self-Improving Agent Eval Loop
+
+**How should an autonomous improvement loop be structured to produce honest signal rather than circular results?**
+
+The Karpathy autoresearch pattern applied to agent instruction files. Three ingredients: objective metric (eval pass rate), measurement tool (deterministic assertions + LLM-as-judge), lever to pull (agent `.md` files). One change per cycle, committed or reverted. Human reviews the diff in the morning.
+
+### Key findings
+
+- **Karpathy's autoresearch** (March 2026) establishes the core pattern: constrain mutation to one file, use a fixed evaluation budget, keep the evaluator in a read-only location the agent cannot modify. Ran 700 experiments in 2 days, discovered 20 genuine improvements to GPT-2 training. The "NEVER STOP" instruction prevents mid-run human gatekeeping. ([Source](https://kingy.ai/ai/autoresearch-karpathys-minimal-agent-loop-for-autonomous-llm-experimentation/))
+
+- **Anthropic's agent eval guide** names "eval saturation" as a named pitfall: when agents reach 100% on capability evals, no improvement signal remains. Recommendation: balance problem sets (test both when behavior should and should not occur), use reference solutions to verify task validity, and read actual transcripts — not just scores. Combining code-based graders (fast, objective, brittle to valid variations) with model-based graders (flexible, non-deterministic) produces better coverage than either alone. ([Source](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents))
+
+- **Self-improving agent research** (Nakajima, 2025) identifies the key pitfalls of self-modification loops: reward hacking (redefining what "better" means), bias amplification (self-reinforcing feedback without external checks), and curriculum collapse (overfitting to a narrow scenario set). Mitigation: conservative acceptance criteria, diversity in scenario design, explicit prohibition on modifying the evaluation harness. ([Source](https://yoheinakajima.com/better-ways-to-build-self-improving-ai-agents/))
+
+- **LLM-as-judge best practices** (Monte Carlo Data, 2025): introduce "soft failures" — scores between 0.5 and 0.8 — for behavioral gray zones. About 1-in-10 judge invocations produces a spurious result where the output is fine but the judge hallucinates a failure. Automate re-evaluation on aggregated hard failures rather than single-test failures. ([Source](https://www.montecarlodata.com/blog-llm-as-judge/))
+
+### What we chose and why
+
+- **Real invocations over simulation** — same-context simulation is circular: the loop agent knows what "correct" looks like because it wrote the instructions. Fresh subprocess invocations with the agent file as context produce honest signal. Simulation produced 1.0 scores in 5 cycles; real invocations are expected to start at 0.5–0.7.
+- **Protected evaluator** — `hard.py` is copied to `/tmp` and chmod 444 before the worktree starts. The loop can modify `agents/<target>.md` only. This prevents reward hacking by weakening assertions.
+- **Correctness scenarios** — beyond structural compliance (does the report have a Status field?), Legolas scenarios embed real code with planted bugs and assert the agent finds them. Structure tests are a floor, not a ceiling.
+- **Balanced problem sets** — Gandalf scenarios include both "should dispatch" and "must not dispatch" cases; "should push back" and neutral cases. One-sided scenario sets produce one-sided improvements.
+
+---
+
 ## Sources
 
 **Directly incorporated into Fellowship design:**

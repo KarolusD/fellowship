@@ -233,6 +233,29 @@ Fellowship's design draws on blog posts, open-source projects, and a handful of 
 
 See **[Research Behind Fellowship's Design](docs/fellowship/research.md)** for the full breakdown with sources.
 
+## AutoImprove
+
+Fellowship includes a self-improvement loop that autonomously improves agent instruction files overnight using the [autoresearch pattern](https://kingy.ai/ai/autoresearch-karpathys-minimal-agent-loop-for-autonomous-llm-experimentation/).
+
+**How it works:** Each agent has an eval suite (`scenarios.jsonl`, `hard.py`, `soft.md`). The runner invokes fresh claude instances per scenario, measures pass rate, proposes one change per cycle to the agent file, commits improvements or reverts failures. You review the diff in the morning.
+
+**Run it:**
+```bash
+# Single agent, 15 cycles
+./evals/_runner/improve.sh gimli --cycles 15
+
+# All three core agents overnight
+./evals/_runner/improve.sh --all --cycles 25
+```
+
+**Review in the morning:**
+```bash
+git log --oneline autoimprove/gimli-<timestamp>   # what held
+git merge autoimprove/gimli-<timestamp> --no-ff   # merge improvements
+```
+
+Agents covered: Gimli, Gandalf, Legolas. Each has hard assertions (structural + behavioral correctness) and soft assertions (voice quality, LLM-as-judge).
+
 ## Principles
 
 - **The Ring must not grow heavier.** Scope is sacred. Every addition is a burden.

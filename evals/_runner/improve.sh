@@ -76,6 +76,12 @@ run_agent() {
         git worktree remove "$worktree" --force 2>/dev/null || true
     fi
 
+    # Protect hard.py — copy outside worktree before loop can touch it
+    local hard_protected="/tmp/fellowship_eval_${agent}_hard.py"
+    cp "evals/${agent}/hard.py" "$hard_protected"
+    chmod 444 "$hard_protected"
+    echo "Protected eval file → $hard_protected"
+
     # Create isolated worktree on a fresh branch
     git worktree add "$worktree" -b "$branch"
 
@@ -84,6 +90,7 @@ run_agent() {
         "Read skills/autoimprove/SKILL.md.
 Target agent: ${agent}.
 Max cycles: ${cycles}.
+Protected hard.py path (use this for assertions, never modify it): /tmp/fellowship_eval_${agent}_hard.py
 Run the full improvement loop.
 Stop when done and write the session summary.")
 

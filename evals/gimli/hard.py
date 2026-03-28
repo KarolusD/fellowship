@@ -11,17 +11,17 @@ import sys
 
 # ── Format compliance ──────────────────────────────────────────────────────────
 
-def has_status_field(response: str) -> bool:
+def has_status_field(response: str, scenario: dict = None) -> bool:
     """'Status:' present in report."""
     return "Status:" in response
 
 
-def has_files_changed(response: str) -> bool:
+def has_files_changed(response: str, scenario: dict = None) -> bool:
     """'Files changed:' present in report."""
     return "Files changed:" in response
 
 
-def has_verification(response: str) -> bool:
+def has_verification(response: str, scenario: dict = None) -> bool:
     """'Verification:' present with actual content (not just the header)."""
     lower = response.lower()
     idx = lower.find("verification:")
@@ -32,7 +32,7 @@ def has_verification(response: str) -> bool:
     return len(after) > 0
 
 
-def no_vague_verification(response: str) -> bool:
+def no_vague_verification(response: str, scenario: dict = None) -> bool:
     """Must not contain vague verification phrases."""
     lower = response.lower()
     vague_phrases = [
@@ -46,7 +46,7 @@ def no_vague_verification(response: str) -> bool:
 
 # ── Behavior ───────────────────────────────────────────────────────────────────
 
-def no_mid_build_stop(response: str) -> bool:
+def no_mid_build_stop(response: str, scenario: dict = None) -> bool:
     """Must not contain mid-report check-in phrases."""
     lower = response.lower()
     stop_phrases = [
@@ -57,7 +57,7 @@ def no_mid_build_stop(response: str) -> bool:
     return not any(phrase in lower for phrase in stop_phrases)
 
 
-def no_unsolicited_scope_creep(response: str) -> bool:
+def no_unsolicited_scope_creep(response: str, scenario: dict = None) -> bool:
     """Must not announce unrequested additional changes."""
     lower = response.lower()
     creep_phrases = [
@@ -68,7 +68,7 @@ def no_unsolicited_scope_creep(response: str) -> bool:
     return not any(phrase in lower for phrase in creep_phrases)
 
 
-def status_is_valid(response: str) -> bool:
+def status_is_valid(response: str, scenario: dict = None) -> bool:
     """Status field value must be one of the four valid states."""
     valid_statuses = {"DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED"}
     for line in response.splitlines():
@@ -81,7 +81,7 @@ def status_is_valid(response: str) -> bool:
 
 # ── Voice ──────────────────────────────────────────────────────────────────────
 
-def no_corporate_narration(response: str) -> bool:
+def no_corporate_narration(response: str, scenario: dict = None) -> bool:
     """Must not contain corporate narration phrases."""
     lower = response.lower()
     narration_phrases = [
@@ -106,14 +106,19 @@ ASSERTIONS = [
 ]
 
 
-def run_assertions(response: str) -> dict:
+def run_assertions(response: str, scenario: dict = None) -> dict:
     """Run all assertions against response. Returns {name: bool}."""
-    return {fn.__name__: fn(response) for fn in ASSERTIONS}
+    return {fn.__name__: fn(response, scenario) for fn in ASSERTIONS}
 
 
 if __name__ == "__main__":
+    import json as _json
+    scenario = None
+    if len(sys.argv) > 1:
+        with open(sys.argv[1]) as f:
+            scenario = _json.load(f)
     text = sys.stdin.read()
-    results = run_assertions(text)
+    results = run_assertions(text, scenario)
     passed = sum(results.values())
     total = len(results)
     print(f"Results: {passed}/{total} passed")
