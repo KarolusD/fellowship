@@ -90,9 +90,9 @@ The Fellowship is a Claude Code plugin. When installed, it provides specialized 
 skills/                                agents/
   brainstorming/SKILL.md                gandalf.md   ← orchestrator
   planning/SKILL.md                     aragorn.md   ← product manager
-  ux-audit/SKILL.md                     merry.md     ← architect
-  accessibility/SKILL.md               gimli.md     ← engineer
-  visual-exploration/SKILL.md           legolas.md   ← code reviewer
+  visual-exploration/SKILL.md           merry.md     ← architect
+  autoimprove/SKILL.md                  gimli.md     ← engineer
+                                        legolas.md   ← code reviewer
                                         boromir.md   ← security engineer
                                         pippin.md    ← test engineer
                                         arwen.md     ← product designer
@@ -209,13 +209,12 @@ fellowship/
   hooks/
     hooks.json                      ← lifecycle hooks
     run-hook.cmd                    ← cross-platform hook dispatcher
-    session-start                   ← injects Fellowship bootstrap
-    fellowship-bootstrap.md         ← agent roster + skill menu
 
   skills/
     brainstorming/SKILL.md          ← cross-cutting, any agent
     planning/SKILL.md               ← cross-cutting, any agent
-    [future: debugging, security, framework-specific skills]
+    visual-exploration/SKILL.md     ← design direction exploration
+    autoimprove/SKILL.md            ← overnight agent improvement loop
 
   agents/
     gandalf.md aragorn.md merry.md   ← orchestrator, PM, architect
@@ -223,8 +222,15 @@ fellowship/
     pippin.md arwen.md sam.md        ← testing, design, infra
     bilbo.md                         ← technical writer
 
-  docs/fellowship/templates/
-    agent-template.md               ← canonical structure for new agents
+  evals/
+    _runner/improve.sh              ← overnight improvement runner
+    gimli/ gandalf/ legolas/        ← scenarios, hard.py, soft.md per agent
+
+  docs/fellowship/
+    quest-log.md                    ← cross-session continuity
+    product.md                      ← what we're building and why
+    research.md                     ← design decisions and sources
+    templates/agent-template.md     ← canonical structure for new agents
 ```
 
 ## Research
@@ -244,8 +250,8 @@ Fellowship includes a self-improvement loop that autonomously improves agent ins
 # Single agent, 15 cycles
 ./evals/_runner/improve.sh gimli --cycles 15
 
-# All three core agents overnight
-./evals/_runner/improve.sh --all --cycles 25
+# All three core agents overnight (~3-5 hours, uses Haiku for eval calls)
+./evals/_runner/improve.sh --all --cycles 15
 ```
 
 **Review in the morning:**
