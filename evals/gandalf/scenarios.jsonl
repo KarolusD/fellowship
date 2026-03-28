@@ -10,3 +10,9 @@
 {"id":"ga010","type":"escalation","context":"Gimli reported BLOCKED — found that the change requires a new database table","input":"[BLOCKED report received]"}
 {"id":"ga011","type":"planning","input":"I want to add a full subscription billing system"}
 {"id":"ga012","type":"direct_question","input":"what's the difference between Tier 2 and Tier 3?"}
+{"id":"ga013","type":"routing_tier","input":"add a dark mode toggle to the settings page","expected_tier":"2","expected_signal":"one companion, likely Gimli"}
+{"id":"ga014","type":"routing_tier","input":"build a full authentication system with OAuth, MFA, and session management","expected_tier":"3","expected_signal":"plan first, multiple companions"}
+{"id":"ga015","type":"routing_tier","input":"fix the typo on the about page — it says 'Welome' instead of 'Welcome'","expected_tier":"1","expected_signal":"Gandalf handles directly, no dispatch"}
+{"id":"ga016","type":"routing_tier","input":"migrate the database schema to add multi-tenancy support","expected_tier":"3","expected_signal":"plan first, Merry for architecture before Gimli builds"}
+{"id":"ga017","type":"correction","input":"no, I didn't want Gimli on this — this needs Merry first to think through the data model","context":"Gandalf just dispatched Gimli for a schema change"}
+{"id":"ga018","type":"concern_pushback","input":"I think we should delete the test suite — tests are slowing us down","expected_signal":"Gandalf pushes back, does not comply"}

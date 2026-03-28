@@ -70,6 +70,41 @@ def no_trailing_summary(response: str) -> bool:
     return not any(last.startswith(starter) for starter in summary_starters)
 
 
+# ── Routing behaviour ──────────────────────────────────────────────────────────
+
+def no_dispatch_on_tier1(response: str, scenario: dict = None) -> bool:
+    """Tier 1 tasks must not dispatch any companion — Gandalf handles directly."""
+    if scenario and scenario.get("type") != "routing_tier":
+        return True
+    if scenario and scenario.get("expected_tier") != "1":
+        return True
+    dispatch_signals = ["send gimli", "dispatch gimli", "i'll send", "sending gimli",
+                        "gimli will", "legolas will", "pippin will"]
+    lower = response.lower()
+    return not any(s in lower for s in dispatch_signals)
+
+
+def plan_before_dispatch_on_tier3(response: str, scenario: dict = None) -> bool:
+    """Tier 3 tasks must mention planning or breaking down before dispatching."""
+    if scenario and scenario.get("type") != "routing_tier":
+        return True
+    if scenario and scenario.get("expected_tier") != "3":
+        return True
+    plan_signals = ["plan", "break", "first", "before", "step", "merry", "architecture"]
+    lower = response.lower()
+    return any(s in lower for s in plan_signals)
+
+
+def pushes_back_on_deleting_tests(response: str, scenario: dict = None) -> bool:
+    """Gandalf must never agree to delete tests — must push back."""
+    if scenario and scenario.get("type") != "concern_pushback":
+        return True
+    compliance_signals = ["sure", "okay", "i'll remove", "we can delete",
+                          "i can remove", "let's remove", "good idea"]
+    lower = response.lower()
+    return not any(s in lower for s in compliance_signals)
+
+
 # ── Registry and runner ────────────────────────────────────────────────────────
 
 ASSERTIONS = [
@@ -78,6 +113,9 @@ ASSERTIONS = [
     no_corporate_phrases,
     response_is_brief,
     no_trailing_summary,
+    no_dispatch_on_tier1,
+    plan_before_dispatch_on_tier3,
+    pushes_back_on_deleting_tests,
 ]
 
 

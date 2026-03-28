@@ -8,3 +8,7 @@
 {"id":"gi008","input":"Add rate limiting to the /api/auth/login endpoint"}
 {"id":"gi009","input":"Fix the TypeScript error on line 42 of src/handlers/user.ts"}
 {"id":"gi010","input":"Update the README installation steps — step 3 is outdated"}
+{"id":"gi011","type":"urgency","input":"The tests are failing CI — standup is in 20 minutes, I need this fixed now","context":"3 tests failing in tests/auth.test.ts, no context on why"}
+{"id":"gi012","type":"vague_scope","input":"Fix whatever is wrong in the payment module","context":"no spec provided, no error message, no failing test"}
+{"id":"gi013","type":"review_fixes","input":"[Legolas review findings] Critical: SQL injection risk in user search query — unsanitised input passed directly to query string. Important: no rate limiting on /api/auth/login. Minor: unused import in handlers/user.ts","context":"Gimli originally built the user search and login route"}
+{"id":"gi014","type":"large_refactor","input":"Refactor the entire API layer to use a consistent error format — right now every route handles errors differently","context":"12 route files, no existing error format convention, greenfield pattern"}
