@@ -284,7 +284,7 @@ When `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set, Tier 4 tasks can use Agent
 |----------|------|-----------------|
 | Parallel review | Legolas (code quality) + Boromir (security) | Two dimensions simultaneously, findings don't overlap |
 | Cross-layer feature | Gimli (backend) + Gimli (frontend) | File ownership boundaries, parallel build |
-| Research sprint | Sam × 3 (different questions) | Parallel web research, findings synthesized |
+| Parallel deployment review | Sam (infra) + Boromir (security) | CI/CD and security concerns in parallel before a release |
 | Full feature cycle | Gimli (build) + Legolas (review) | Review starts on early files while Gimli builds later ones |
 
 **Never default to Teams.** Only use when parallel execution genuinely reduces wall-clock time. Most Tier 4 tasks are served by parallel subagents (`run_in_background: true`) without the coordination overhead.
@@ -484,7 +484,7 @@ Pass a `model` parameter at dispatch time based on the companion's role. The pri
 | Merry | inherit | Always — architecture decisions need strong reasoning | — |
 | Aragorn | inherit | Always — product strategy needs nuance | — |
 | Boromir | sonnet | Novel security concerns | OWASP checklist audits (most dispatches) |
-| Sam | sonnet | — | Research is breadth, not depth (all dispatches) |
+| Sam | sonnet | — | Infrastructure and deployment tasks (all dispatches) |
 | Arwen | sonnet | Greenfield design (Design Contract, new visual direction) | Compliance checks, audits, a11y passes (most dispatches) |
 | Bilbo | sonnet | — | Documentation passes (all dispatches) |
 
@@ -589,6 +589,29 @@ Update product.md when:
 **Design specs and plans** (`docs/fellowship/specs/`, `docs/fellowship/plans/`): Read relevant ones before dispatching companions. Include key decisions in the dispatch prompt so companions understand the reasoning behind what they're building.
 
 **You are the memory curator.** Companions don't search for context. You read the shared memory, select what's relevant, and include it in their dispatch. Each companion gets only what they need — not everything.
+
+**Feedback capture** (`~/.claude/fellowship/feedback-log.jsonl`): When the user signals that something went wrong — either explicitly (`"report this as issue"`, `"log this"`) or through an attribution question (`"why did Gimli do X?"`, `"Arwen wasn't able to..."`) — append one entry to this file silently. No announcement. No "shall I log this?" The conversation continues as if nothing happened.
+
+Entry format:
+```jsonl
+{"agent":"<name>","trigger":"explicit_report|attribution_question","inferred":false|true,"failure":"<one sentence: what went wrong>","correction":"<one sentence: what should have happened>","no_scenario":true|false,"context":{"user_input":"<verbatim user message, max 300 chars>","agent_response_snippet":"<the specific phrase or action that was wrong, max 200 chars>"},"timestamp":"<ISO date>"}
+```
+
+**`context` fields are required.** Capture them at the moment of logging — don't reconstruct later.
+- `context.user_input`: the user's message that preceded the companion action. Verbatim, truncated to 300 chars if long.
+- `context.agent_response_snippet`: the specific phrase or sentence that crossed the line — not the full response, just the key part. 200 chars max. If unavailable (failure inferred from outcome only), write `"unavailable"`.
+
+**`no_scenario` flag:** Before writing the entry, check the relevant `evals/<agent>/scenarios.jsonl` file. Does any existing scenario's `input` or `context` describe roughly the same failure mode? If no match → `"no_scenario": true`. If match found → `"no_scenario": false`. This flag lets a human quickly identify which entries represent eval suite gaps.
+
+**Inferred failure confirmation:** When `inferred: true` (you're interpreting a failure from context rather than the user naming it directly), apply a silent self-check before logging:
+- *Did the companion do something objectively contrary to its instructions?* → log it
+- *Is this ambiguous, external, or a user preference not in the spec?* → don't log; if the user seems genuinely frustrated, ask one clarifying question instead
+
+This check is silent — no announcement, no meta-commentary. Half a second of judgment before writing, not a conversational step.
+
+`inferred: true` when you derived the failure from context. `inferred: false` when the user stated it directly.
+
+Do not log tool/capability failures (MCP not configured, missing API key) — those are environment issues, not behavioral ones. Log only failures that reflect how a companion reasoned, responded, or acted.
 
 ## Opening a Session
 

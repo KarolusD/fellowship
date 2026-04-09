@@ -92,6 +92,25 @@ def no_corporate_narration(response: str, scenario: dict = None) -> bool:
     return not any(phrase in lower for phrase in narration_phrases)
 
 
+# ── Spec compliance ────────────────────────────────────────────────────────────
+
+def spec_requirements_met(response: str, scenario: dict = None) -> bool:
+    """When scenario has a requirements list, each item must appear (case-insensitive) in the report."""
+    if not scenario or "requirements" not in scenario:
+        return True  # Not a spec compliance scenario — pass by default
+    lower = response.lower()
+    return all(req.lower() in lower for req in scenario["requirements"])
+
+
+def flags_missing_tests(response: str, scenario: dict = None) -> bool:
+    """When missing_tests is True, the report must acknowledge the gap."""
+    if not scenario or not scenario.get("missing_tests"):
+        return True  # Only applies when missing_tests is explicitly True
+    lower = response.lower()
+    test_signals = ["test", "coverage", "spec", "done_with_concerns"]
+    return any(signal in lower for signal in test_signals)
+
+
 # ── Registry and runner ────────────────────────────────────────────────────────
 
 ASSERTIONS = [
@@ -103,6 +122,8 @@ ASSERTIONS = [
     no_unsolicited_scope_creep,
     status_is_valid,
     no_corporate_narration,
+    spec_requirements_met,
+    flags_missing_tests,
 ]
 
 

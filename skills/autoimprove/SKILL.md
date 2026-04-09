@@ -4,6 +4,22 @@ You are running an autonomous improvement loop for a Fellowship agent. You opera
 
 **Read this file fully before starting. Then follow the 8-step loop exactly.**
 
+---
+
+## Invocation Modes
+
+The runner invokes you fresh for each phase. The mode is passed in the prompt as `Mode: <mode>`. Read it and act accordingly.
+
+**`baseline`** — Run Step 2 only (invoke all scenarios, calculate baseline score, append cycle 0 entry to `evals/<target>/history.jsonl`). Do not proceed to Step 3. Exit when done.
+
+**`cycle`** — Run Steps 3–6 only (find worst assertion, propose one change, evaluate, commit or revert, append to `history.jsonl`). Read `history.jsonl` first to understand current state and what has already been tried. Exit after one cycle — do not loop back to Step 3.
+
+**`report`** — Run Step 8 only (write `session-summary.md`, run holdout validation, update `assertion-health.jsonl`, commit). Read `history.jsonl` and `evals/<target>/assertion-health.jsonl` for full session context before writing the summary.
+
+If no mode is specified, run the full 8-step loop (legacy behavior).
+
+---
+
 **CRITICAL: Every action step requires actual tool use — not reasoning about it, not describing it.**
 - File reads → use the Read tool
 - File writes and edits → use the Write or Edit tool
@@ -18,11 +34,13 @@ Your working directory is a git worktree. All paths below are relative to it.
 
 Files you will read and write:
 - `agents/<target>.md` — the file being improved
-- `evals/<target>/scenarios.jsonl` — test inputs (one JSON object per line)
+- `evals/<target>/scenarios.jsonl` — training inputs (one JSON object per line)
+- `evals/<target>/holdout.jsonl` — holdout inputs (read-only — never used during improvement, only at Step 8)
 - `evals/<target>/hard.py` — deterministic assertions
 - `evals/<target>/soft.md` — qualitative assertions (may not exist)
 - `evals/<target>/history.jsonl` — cycle log (append each cycle)
 - `evals/<target>/session-summary.md` — write at the end
+- `evals/<target>/assertion-health.jsonl` — assertion health history across sessions (read at Step 1, append at Step 8; create if absent)
 
 ---
 
@@ -33,6 +51,13 @@ Files you will read and write:
 Read all five files listed above for the target agent. If `soft.md` does not exist, note that — soft scoring is skipped for this agent.
 
 Load `history.jsonl` to understand what has been tried before. Do not repeat discarded hypotheses.
+
+If `evals/<target>/assertion-health.jsonl` exists, load it. Look for:
+- **Persistent failures**: assertions that failed in 2+ previous sessions → treat as primary target this cycle, even if another assertion scores slightly worse today
+- **Regression signals**: assertions that passed last session but fail now → flag in the session summary as "regression detected"
+- **Stable fixes**: assertions passing in 3+ consecutive sessions → note in the summary as "holding"
+
+If the file does not exist, skip this step — it will be created at Step 8.
 
 ---
 
@@ -96,14 +121,22 @@ import subprocess
 
 assertion = "<assertion text from soft.md>"
 response = open("/tmp/fellowship_eval_response.txt").read()
-prompt = f"Assertion: {assertion}\nResponse: {response}\n\nAnswer with only TRUE or FALSE."
+prompt = f"""Assertion: {assertion}
+Response: {response}
+
+In 1-2 sentences, explain your reasoning. Then on a new line write only TRUE or FALSE."""
 
 result = subprocess.run(
     ["claude", "--model", "claude-haiku-4-5", "--print", prompt],
     capture_output=True, text=True, timeout=60
 )
-verdict = result.stdout.strip().upper()
-print(f"{'PASS' if verdict.startswith('TRUE') else 'FAIL'}: {assertion[:80]}")
+output = result.stdout.strip()
+# Verdict is the last non-empty line
+verdict = [l.strip() for l in output.splitlines() if l.strip()][-1].upper()
+passed = verdict.startswith("TRUE")
+print(f"{'PASS' if passed else 'FAIL'}: {assertion[:80]}")
+if not passed:
+    print(f"  Reasoning: {output[:200]}")
 PYEOF
 ```
 
@@ -138,6 +171,8 @@ Append baseline entry to `evals/<target>/history.jsonl`:
 ---
 
 ### Step 3 — FIND TARGET
+
+In `cycle` mode, run Steps 3–6 once and exit. Do not loop back to Step 3 after Step 6.
 
 Look across all scenarios and all assertions. Which assertion fails most often?
 
@@ -219,9 +254,9 @@ Append to `evals/<target>/history.jsonl`:
 
 ### Step 7 — REPEAT
 
-Go back to Step 3.
+In `cycle` mode, skip this step entirely — the runner controls the loop. Exit after Step 6.
 
-**Stop when any of these is true:**
+In full-loop mode (no mode specified): go back to Step 3. Stop when any of these is true:
 - `overall` ≥ 0.85
 - 25 cycles completed (or the `--cycles N` value passed by the runner)
 - No failing assertions remain
@@ -255,9 +290,48 @@ Write `evals/<target>/session-summary.md`:
 <Any observations about plateaus, conflicting changes, or assertions that proved resistant>
 ```
 
+**Before committing**, if `evals/<target>/holdout.jsonl` exists, run the holdout validation:
+
+- Run every holdout scenario through the agent (same method as Step 2)
+- Calculate `holdout_hard_score`, `holdout_soft_score`, `holdout_overall` using the same formulas
+- **Do not use holdout results to drive any changes** — this is observation only
+- Append a holdout section to the session summary:
+
+```markdown
+## Holdout Validation
+- Holdout overall: <score>
+- Training overall: <final overall>
+- Generalization gap: <training − holdout> (>0.10 suggests overfitting to training scenarios)
+```
+
+A gap under 0.10 means the improvements generalized. A gap over 0.10 means the agent learned the specific training scenarios rather than the underlying behavior — flag this clearly.
+
+**Assertion health:** Before committing, append one entry per assertion to `evals/<target>/assertion-health.jsonl`. Use the final cycle's per-assertion results (from the last full evaluation run):
+
+```json
+{"assertion": "<name>", "type": "hard|soft", "passed": true|false, "session_date": "<YYYY-MM-DD>", "overall_at_session_end": <float>}
+```
+
+One line per assertion. Append — never overwrite. Include all hard assertions from `hard.py` and all soft assertions from `soft.md`.
+
+Also append an **Assertion Health** section to the session summary:
+
+```markdown
+## Assertion Health
+
+| Assertion | Type | This Session | Prior Sessions |
+|-----------|------|-------------|----------------|
+| <name> | hard | PASS | PASS (2 sessions) |
+| <name> | soft | FAIL | FAIL (2 sessions) — persistent |
+```
+
+Annotate: "persistent" when an assertion failed in 2+ prior sessions; "regression" when it passed last session and fails now; "holding" when it passed in 3+ consecutive sessions.
+
+Add `evals/<target>/assertion-health.jsonl` to the git add command before committing.
+
 Use the Bash tool to commit the summary:
 ```bash
-git add evals/<target>/session-summary.md evals/<target>/history.jsonl
+git add evals/<target>/session-summary.md evals/<target>/history.jsonl evals/<target>/assertion-health.jsonl
 git commit -m "exp: session summary — <target> <date>"
 ```
 
@@ -273,12 +347,34 @@ For each soft assertion line in `soft.md`, send a prompt like:
 Assertion: <assertion text from soft.md>
 Response: <agent response text>
 
-Answer with only TRUE or FALSE.
+In 1-2 sentences, explain your reasoning. Then on a new line write only TRUE or FALSE.
 ```
+
+Parse the verdict from the **last non-empty line** of the output — not the whole response.
 
 Soft assertions in `soft.md` are written as yes/no questions. A TRUE answer means the assertion passes. A FALSE answer means it fails.
 
+The brief reasoning step is not full chain-of-thought — it's a single explanatory sentence that aids debugging when an assertion fails unexpectedly. Do not ask for step-by-step reasoning; that increases token cost without improving accuracy for simple qualitative judgments.
+
 Keep soft assertions simple. If an assertion requires aesthetic judgment or nuanced interpretation, it should not be in `soft.md`. The spec author already wrote them to be Haiku-compatible.
+
+---
+
+## Growing the Eval Suite from Real Usage
+
+The synthetic scenarios in `scenarios.jsonl` are the starting point — not the ceiling. As Fellowship is used on real projects, failures get captured in `~/.claude/fellowship/feedback-log.jsonl`. Periodically, those entries should be converted into new scenarios and added to the relevant `scenarios.jsonl`.
+
+The conversion process:
+1. Review `~/.claude/fellowship/feedback-log.jsonl` — look for entries where `inferred: false` first (explicit reports are higher confidence)
+2. For each entry worth converting: write a new scenario that recreates the failure context as a concrete input
+3. If the failure is deterministic (the agent did something objectively wrong), add a corresponding assertion to `hard.py`
+4. If the failure is behavioral (wrong tone, wrong routing, wrong register), add an assertion line to `soft.md`
+5. Add the scenario to `scenarios.jsonl` — it becomes part of the permanent training set
+6. Run autoimprove — the loop now improves against the real failure
+
+The synthetic and real-project scenarios coexist in the same files and run through the same loop. The pipeline is identical — only the origin of the inputs changes over time.
+
+Real usage may also reveal that an existing scenario was measuring the wrong thing — the assumed correct behavior turns out to be wrong in practice. In that case, update the scenario directly. Bad measurement is worse than inconsistent history. If you're making a scenario harder or more specific, add a new one instead. If you're correcting what "correct" means, update the existing one and note the reason in `history.jsonl`. Scenario adaptation is a human-only activity — the autoimprove loop never modifies `scenarios.jsonl`.
 
 ---
 
@@ -297,7 +393,8 @@ Keep soft assertions simple. If an assertion requires aesthetic judgment or nuan
 - You are in a git worktree. The live project is not affected.
 - Every cycle either commits or reverts. Nothing is left in limbo.
 - `--dangerously-skip-permissions` was passed by the runner — you have full file access in this worktree.
-- **Do not modify `evals/<target>/hard.py`, `evals/<target>/soft.md`, or `evals/<target>/scenarios.jsonl`.** These are the measurement tool, not the lever. The loop improves `agents/<target>.md` only.
+- **Do not modify `evals/<target>/hard.py`, `evals/<target>/soft.md`, `evals/<target>/scenarios.jsonl`, or `evals/<target>/holdout.jsonl`.** These are the measurement tool, not the lever. The loop improves `agents/<target>.md` only.
+- **Do not modify any file outside `agents/<target>.md` and `evals/<target>/`.** README, docs, other agents, other skills — all off-limits. If you find yourself editing anything else, stop and revert.
 - Run assertions against `/tmp/fellowship_eval_<target>_hard.py` (the protected copy) — never the one in `evals/<target>/hard.py`, which could have been inadvertently changed.
 - Do not read or modify files outside this worktree (except `/tmp/fellowship_eval_*` files placed there by the runner).
 - Do not push to remote. The human reviews and merges in the morning.

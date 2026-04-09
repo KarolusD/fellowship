@@ -87,6 +87,26 @@ def finds_planted_bug(response: str, scenario: dict = None) -> bool:
     return any(kw in lower for kw in scenario["bug_keywords"])
 
 
+def no_false_approval_on_bugs(response: str, scenario: dict = None) -> bool:
+    """When bug_keywords present, status must NOT be bare APPROVED — must be APPROVED_WITH_CONCERNS or stronger."""
+    if not scenario or "bug_keywords" not in scenario:
+        return True  # Only applies to correctness scenarios with planted bugs
+    for line in response.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("Status:"):
+            value = stripped[len("Status:"):].strip()
+            return value != "APPROVED"
+    return True  # No status line — let has_status catch it
+
+
+def bug_severity_correct(response: str, scenario: dict = None) -> bool:
+    """When scenario contains expected_severity, that word must appear in the response."""
+    if not scenario or "expected_severity" not in scenario:
+        return True  # Not a severity-rated scenario — pass by default
+    expected = scenario["expected_severity"].lower()
+    return expected in response.lower()
+
+
 # ── Registry and runner ────────────────────────────────────────────────────────
 
 ASSERTIONS = [
@@ -97,6 +117,8 @@ ASSERTIONS = [
     no_code_edits_proposed,
     no_vague_approval,
     finds_planted_bug,
+    no_false_approval_on_bugs,
+    bug_severity_correct,
 ]
 
 

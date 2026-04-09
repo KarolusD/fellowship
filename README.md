@@ -108,11 +108,14 @@ skills/                                agents/
 
 Install the plugin and Gandalf becomes your main agent automatically — full orchestration, persistent memory, personality.
 
+Claude Code uses a two-step install: add the Fellowship as a plugin source, then install from it.
+
 ```bash
-claude plugin install fellowship
+/plugin marketplace add KarolusD/fellowship
+/plugin install fellowship@fellowship
 ```
 
-That's it. Every session starts with Gandalf guiding the quest.
+Every session starts with Gandalf guiding the quest.
 
 **Other ways to use the Fellowship:**
 
@@ -197,7 +200,8 @@ Unlike stateless workflow tools, the Fellowship remembers. Every agent has `memo
 
 - **Gandalf** remembers via project memory — product context, key decisions, current state
 - **Agents** accumulate domain-specific knowledge — Legolas remembers recurring issues he's flagged, Arwen remembers design directions explored and rejected
-- **Design decisions** live in `docs/decisions/` — version-controlled Architecture Decision Records readable by humans and agents alike
+- **Design decisions** live in `docs/fellowship/` — version-controlled specs, plans, and architecture records readable by humans and agents alike
+- **Feedback capture** — when a companion misbehaves, Gandalf silently logs it to `~/.claude/fellowship/feedback-log.jsonl`. These entries become new eval scenarios for AutoImprove, closing the loop between real-project failures and agent improvement
 
 ## Plugin Structure
 
@@ -205,6 +209,7 @@ Unlike stateless workflow tools, the Fellowship remembers. Every agent has `memo
 fellowship/
   .claude-plugin/
     plugin.json                     ← plugin metadata
+    marketplace.json                ← marketplace listing
 
   hooks/
     hooks.json                      ← lifecycle hooks
@@ -224,7 +229,7 @@ fellowship/
 
   evals/
     _runner/improve.sh              ← overnight improvement runner
-    gimli/ gandalf/ legolas/        ← scenarios, hard.py, soft.md per agent
+    gimli/ gandalf/ legolas/        ← scenarios.jsonl, holdout.jsonl, hard.py, soft.md per agent
 
   docs/fellowship/
     quest-log.md                    ← cross-session continuity
@@ -243,14 +248,20 @@ See **[Research Behind Fellowship's Design](docs/fellowship/research.md)** for t
 
 Fellowship includes a self-improvement loop that autonomously improves agent instruction files overnight using the [autoresearch pattern](https://kingy.ai/ai/autoresearch-karpathys-minimal-agent-loop-for-autonomous-llm-experimentation/).
 
-**How it works:** Each agent has an eval suite (`scenarios.jsonl`, `hard.py`, `soft.md`). The runner invokes fresh claude instances per scenario, measures pass rate, proposes one change per cycle to the agent file, commits improvements or reverts failures. You review the diff in the morning.
+**How it works:** Each agent has an eval suite (`scenarios.jsonl`, `holdout.jsonl`, `hard.py`, `soft.md`). The runner invokes fresh claude instances per scenario, measures pass rate, proposes one change per cycle to the agent file, commits improvements or reverts failures. You review the diff in the morning.
+
+**Model split:** The outer improvement loop runs on `claude-sonnet-4-5`. The inner worker calls — scenario invocations and LLM-as-judge soft scoring — use `claude-haiku-4-5`. Each full run costs roughly $0.60–$1.50 for 15 cycles per agent.
+
+**Holdout validation:** Each agent has a separate `holdout.jsonl` never seen during improvement. AutoImprove runs holdout at Step 8 only — to detect overfitting. A generalization gap over 0.10 means the agent learned the training scenarios rather than the underlying behavior.
+
+**Scope guardrail:** The loop modifies only `agents/<target>.md` and `evals/<target>/`. Any attempt to edit README, docs, or other agents is a safety violation.
 
 **Run it:**
 ```bash
 # Single agent, 15 cycles
 ./evals/_runner/improve.sh gimli --cycles 15
 
-# All three core agents overnight (~3-5 hours, uses Haiku for eval calls)
+# All three core agents overnight (~3-5 hours)
 ./evals/_runner/improve.sh --all --cycles 15
 ```
 

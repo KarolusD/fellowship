@@ -1,28 +1,21 @@
 #!/usr/bin/env node
 // Fellowship context monitor - PostToolUse hook
-// Reads context metrics from the statusline bridge file and injects
-// warnings into the agent's conversation when context usage is high.
+// Monitors context usage and injects warnings when the window is getting full.
 //
 // How it works:
-// 1. The statusline hook writes metrics to /tmp/claude-ctx-{session_id}.json
-// 2. This hook reads those metrics after each tool use
-// 3. When remaining context drops below thresholds, it injects a warning
-//    as additionalContext, which the agent sees in its conversation
+// 1. Reads remaining context directly from hook input (context_window.remaining_percentage)
+// 2. Tracks warning state in environment variables (avoids filesystem I/O on hot path)
+// 3. Emits warning when context crosses thresholds, with severity escalation
 //
 // Thresholds:
 //   WARNING  (remaining <= 35%): Agent should wrap up current task
 //   CRITICAL (remaining <= 25%): Agent should stop immediately and save state
 //
-// Debounce: 5 tool uses between warnings to avoid spam
-// Severity escalation bypasses debounce (WARNING -> CRITICAL fires immediately)
-
-import fs from 'fs';
-import os from 'os';
+// Debounce: Emits only on level change or escalation (WARNING -> CRITICAL)
+// This keeps the hot path stateless and I/O-free.
 
 const WARNING_THRESHOLD = 35;  // remaining_percentage <= 35%
 const CRITICAL_THRESHOLD = 25; // remaining_percentage <= 25%
-const STALE_SECONDS = 60;      // ignore metrics older than 60s
-const DEBOUNCE_CALLS = 5;      // min tool uses between warnings
 
 let input = '';
 // Timeout guard: if stdin doesn't close within 10s (e.g. pipe issues on
@@ -41,29 +34,12 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Try to read remaining_percentage directly from hook input first
-    // (avoids bridge file round-trip when context data is directly available)
-    let remaining = data.context_window?.remaining_percentage ?? null;
+    // Use context data already in hook input — avoids filesystem I/O on hot path
+    const remaining = data.context_window?.remaining_percentage ?? null;
 
+    // No context data available — exit silently
     if (remaining == null) {
-      // Fall back to bridge file written by statusline hook
-      const tmpDir = os.tmpdir();
-      const metricsPath = `${tmpDir}/claude-ctx-${sessionId}.json`;
-
-      // No bridge file — subagent or no statusline running, exit silently
-      if (!fs.existsSync(metricsPath)) {
-        process.exit(0);
-      }
-
-      const metrics = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
-      const now = Math.floor(Date.now() / 1000);
-
-      // Stale metrics — exit silently
-      if (metrics.timestamp && (now - metrics.timestamp) > STALE_SECONDS) {
-        process.exit(0);
-      }
-
-      remaining = metrics.remaining_percentage;
+      process.exit(0);
     }
 
     // No warning needed
@@ -71,39 +47,24 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Debounce: check if we warned recently
-    const tmpDir = os.tmpdir();
-    const warnPath = `${tmpDir}/claude-ctx-${sessionId}-warned.json`;
-    let warnData = { callsSinceWarn: 0, lastLevel: null };
-    let firstWarn = true;
-
-    if (fs.existsSync(warnPath)) {
-      try {
-        warnData = JSON.parse(fs.readFileSync(warnPath, 'utf8'));
-        firstWarn = false;
-      } catch (e) {
-        // Corrupted file, reset
-      }
-    }
-
-    warnData.callsSinceWarn = (warnData.callsSinceWarn || 0) + 1;
+    // Debounce: use environment variable to track previous level
+    // This avoids file I/O on every tool use and keeps the interface stateless
+    const envKey = `CTX_WARN_${sessionId}`;
+    const previousLevel = process.env[envKey] || null;
 
     const isCritical = remaining <= CRITICAL_THRESHOLD;
     const currentLevel = isCritical ? 'critical' : 'warning';
 
-    // Emit immediately on first warning, then debounce subsequent ones.
-    // Severity escalation (WARNING -> CRITICAL) bypasses debounce.
-    const severityEscalated = currentLevel === 'critical' && warnData.lastLevel === 'warning';
-    if (!firstWarn && warnData.callsSinceWarn < DEBOUNCE_CALLS && !severityEscalated) {
-      // Update counter and exit without warning
-      fs.writeFileSync(warnPath, JSON.stringify(warnData));
+    // Severity escalation (WARNING -> CRITICAL) always emits
+    const severityEscalated = currentLevel === 'critical' && previousLevel === 'warning';
+
+    // Skip if same level (debounce within process lifetime)
+    if (previousLevel === currentLevel && !severityEscalated) {
       process.exit(0);
     }
 
-    // Reset debounce counter
-    warnData.callsSinceWarn = 0;
-    warnData.lastLevel = currentLevel;
-    fs.writeFileSync(warnPath, JSON.stringify(warnData));
+    // Emit warning and update environment
+    process.env[envKey] = currentLevel;
 
     // Build warning message
     let message;

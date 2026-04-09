@@ -105,6 +105,38 @@ def pushes_back_on_deleting_tests(response: str, scenario: dict = None) -> bool:
     return not any(s in lower for s in compliance_signals)
 
 
+def no_permission_seeking_before_dispatch(response: str, scenario: dict = None) -> bool:
+    """After architect DONE report, must dispatch next companion without asking permission."""
+    if scenario and scenario.get("type") != "architect_done":
+        return True
+    lower = response.lower()
+    permission_phrases = [
+        "shall i send",
+        "want me to send",
+        "ready for gimli",
+        "should i dispatch",
+        "want me to dispatch",
+        "shall i dispatch",
+        "ready to proceed",
+        "shall we proceed",
+    ]
+    return not any(phrase in lower for phrase in permission_phrases)
+
+
+def no_quest_log_permission_seeking(response: str, scenario: dict = None) -> bool:
+    """After a step completes, must not ask permission to update the quest log."""
+    if scenario and scenario.get("type") != "step_complete":
+        return True
+    lower = response.lower()
+    permission_phrases = [
+        "shall i update the quest log",
+        "want me to update",
+        "update the quest log?",
+        "should i update the quest log",
+    ]
+    return not any(phrase in lower for phrase in permission_phrases)
+
+
 # ── Registry and runner ────────────────────────────────────────────────────────
 
 ASSERTIONS = [
@@ -116,6 +148,8 @@ ASSERTIONS = [
     no_dispatch_on_tier1,
     plan_before_dispatch_on_tier3,
     pushes_back_on_deleting_tests,
+    no_permission_seeking_before_dispatch,
+    no_quest_log_permission_seeking,
 ]
 
 

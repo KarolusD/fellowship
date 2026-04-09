@@ -4,7 +4,7 @@
 
 ## Current
 
-- [ ] Implement remaining instruction-level improvements from plugin audit spec
+- [ ] Implement remaining instruction-level improvements from plugin audit spec — 4 items: debug knowledge base, plan-before-build gate, context handoff protocol, codebase map command
 
 ## Up Next
 
@@ -16,6 +16,10 @@
 - [ ] Use Fellowship on a real project — validate orchestration, find gaps
 
 ## Recently Completed
+- [x] Optimize context-monitor hook — removed filesystem I/O from hot path, switched to env-var debounce (2026-03-28)
+- [x] Archive consolidation — 7 design docs (March 19–23) → Phase Foundation summary; old archive cleaned (2026-03-28)
+- [x] AutoImprove eval hardening — judge prompt reasoning step, holdout.jsonl per agent, scenario expansion (Legolas 8→13, Gimli 14→17, Gandalf 18→21 training + 4/3/4 holdout); SKILL.md updated (2026-03-28)
+- [x] AutoImprove — upgraded to real invocations; honest baseline 0.878 vs. circular 1.0; Legolas found status-line mangling defect; eval suite: correctness scenarios, soft.md for all agents, protected evaluator (2026-03-28)
 - [x] AutoImprove — Gimli: 0.925→1.0 across 4 cycles; no_vague_verification, no_corporate_narration, no_mid_build_stop, no_unsolicited_scope_creep hardened with exact banned strings (2026-03-28)
 - [x] Plugin audit + spec — duplicate personality blocks removed, colors fixed (Gimli→orange), health-check fixed (18/0), learnings.md decoupled from injection, improvement spec written (2026-03-27)
 - [x] Bilbo (Technical Writer) — README, changelog, JSDoc/TSDoc, API route docs, architecture overview, teammate mode (2026-03-27)

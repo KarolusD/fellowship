@@ -9,7 +9,8 @@
     {
       "name": "fellowship",
       "version": "1.0.0",
-      "source": "./"
+      "source": "./",
+      "description": "LotR-themed multi-agent system for solo product developers — Gandalf orchestrates, nine companions cover the full lifecycle"
     }
   ]
 }
