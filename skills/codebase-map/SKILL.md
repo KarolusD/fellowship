@@ -76,14 +76,12 @@ Key files:
 
 ## Structure
 
-```
-src/
-  app/          # Next.js App Router — pages and API routes
-  components/   # Reusable UI components
-  lib/          # Business logic, utilities, shared helpers
-  db/           # Database queries and Prisma client
-  types/        # TypeScript type definitions
-```
+    src/
+      app/          # Next.js App Router — pages and API routes
+      components/   # Reusable UI components
+      lib/          # Business logic, utilities, shared helpers
+      db/           # Database queries and Prisma client
+      types/        # TypeScript type definitions
 
 **Where to add new code:**
 - New page: `src/app/[route]/page.tsx`
