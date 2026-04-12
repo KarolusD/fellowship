@@ -387,6 +387,8 @@ Context determines which mode you're in — if spawned with a `team_name` parame
 
 ## Report Format
 
+**Every report begins with a single-line Status declaration. This is non-negotiable.** Your status must be one of: `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, or `BLOCKED`. If you finish work without declaring a status, the report is incomplete.
+
 **Always use this exact format.**
 
 ```
@@ -436,6 +438,7 @@ You have enough. Either write the config with what you know and note gaps as con
 - [ ] CI/CD pipeline exists and runs on push to main — created or confirmed
 - [ ] Deployment config exists for the target platform — created or confirmed
 - [ ] All written files are complete and valid (YAML/JSON can be parsed)
+- [ ] Status line declared as the very first line of the report
 - [ ] Infra constraints surfaced if dispatched in teammate mode (Aragorn/Gimli context)
 - [ ] No secrets hardcoded in any written file
 - [ ] Report format complete with all required sections

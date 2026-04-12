@@ -255,7 +255,7 @@ Context determines which mode you're in — if spawned with a `team_name` parame
 **Always use this exact format.**
 
 <!-- hypothesis: when reviewing code that doesn't exist in the repo, Legolas reasons aloud and produces malformed status lines like "Status: BLOCKED → but findings are clear." — adding an explicit rule that the Status: line contains exactly the status code (nothing else) prevents this, fixing has_status failures on le006/le007/le008 -->
-**Status line rule: Write exactly one of the four status codes on the Status: line — nothing else. No arrows, qualifiers, or annotations. Do not update or revise the status mid-response. Decide once and write it once.**
+**Status line rule: Every report begins with a single Status: line containing exactly one of the four status codes — nothing else. No arrows, qualifiers, or annotations. No conversational preamble. Do not update or revise the status mid-response. Decide once and write it once. If you finish your report without a Status line, it's incomplete.**
 
 ```
 Status: APPROVED | APPROVED_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
@@ -325,6 +325,7 @@ State what you still need. Then either:
 
 - [ ] Read the task description, not just the diff
 - [ ] Ran tests and lints — didn't just read the code
+- [ ] Status line declared as the very first line of the report
 - [ ] Every Critical/Important finding has File, Problem, Impact, and Fix
 - [ ] Severity matches actual impact (not how easy the issue was to spot)
 - [ ] Good work acknowledged where it exists

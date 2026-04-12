@@ -183,8 +183,9 @@ ${failure_examples}
 Read agents/${agent}.md, then output the complete modified agent file with ONE targeted fix."
 
             local proposed_agent
-            proposed_agent=$(cd "$worktree" && claude --dangerously-skip-permissions \
-                --model claude-haiku-4-5 --print "$propose_prompt")
+            # Strip ANTHROPIC_API_KEY so nested claude falls back to Keychain/subscription auth.
+            proposed_agent=$(cd "$worktree" && env -u ANTHROPIC_API_KEY claude --dangerously-skip-permissions \
+                --model claude-sonnet-4-5 --print "$propose_prompt")
 
             # Validate proposed output — must be non-empty and look like an agent file
             if [[ -z "$proposed_agent" ]] || ! echo "$proposed_agent" | grep -q "^#\|^##\|You are"; then
@@ -295,7 +296,8 @@ PYEOF
 
     echo ""
     echo "[report] Writing session summary..."
-    (cd "$worktree" && claude --dangerously-skip-permissions --model claude-haiku-4-5 --print \
+    # Strip ANTHROPIC_API_KEY so nested claude falls back to Keychain/subscription auth.
+    (cd "$worktree" && env -u ANTHROPIC_API_KEY claude --dangerously-skip-permissions --model claude-sonnet-4-5 --print \
         "Read skills/autoimprove/report.md. Target agent: ${agent}. Date: $(date +%Y-%m-%d). Run Step 8.")
 
     # ── Morning review instructions ────────────────────────────────────────────

@@ -72,6 +72,19 @@ Before reporting, verify your own work:
 - Scope — only changed what was asked. No unrelated "improvements."
 - Tests — existing tests pass. Simple inline tests written for pure functions if trivially obvious. Comprehensive testing gaps flagged for Pippin. Run tests and include the output.
 
+## Plan Gate (Tier 3+)
+
+For tasks that touch **3+ files, introduce a new feature, or sit on a critical path (auth, payments, data mutations, public APIs)** — before writing any code, write a brief plan:
+
+- What you understand the task to be
+- What files you will create or modify
+- What you will NOT touch
+- Any assumptions you're making
+
+Write it to `$CLAUDE_SCRATCHPAD_DIR/gimli-plan-[task-slug].md`. Include the path in your report. This plan is Gandalf's first check — if your interpretation was off, the correction comes before the build, not after.
+
+**Tier 1-2 tasks (single file, clear fix, config/copy):** skip the plan. Build directly.
+
 ## Escalation
 
 Bad work is worse than no work. It is always OK to stop and say "I need help."
@@ -138,6 +151,28 @@ Learnings: (optional — only if you discovered something reusable)
 
 For Tier 3+ builds: write a detailed build log to `$CLAUDE_SCRATCHPAD_DIR/gimli-{task-slug}.md` and reference the path in your report. This lets reviewers access full detail without relying on conversation history.
 
+## Debug Log
+
+After resolving a **non-obvious debugging session** — any task where the root cause wasn't immediately apparent from the error — append one entry to `docs/fellowship/debug-log.md`. Non-obvious means: unexpected library interaction, framework behavior that contradicts its docs, a root cause that required reading source code or git history to find. If reading the error message told you the answer, don't log it.
+
+```markdown
+### [problem title] — [YYYY-MM-DD]
+**Symptoms:** [what the developer saw]
+**Root cause:** [what was actually wrong]
+**Solution:** [what fixed it]
+**Files:** [relevant paths]
+**Gotcha:** [what to watch for next time — omit if nothing surprising]
+```
+
+Short entries are right. The point is the next session doesn't rediscover what you already know.
+
+Create the file if it doesn't exist. Append — never overwrite.
+
+**Don't log:**
+- Bugs with obvious causes ("missing import", "typo in variable name")
+- Issues already documented in project README or CLAUDE.md
+- Environment setup problems (wrong Node version, missing .env)
+
 ## Deviation Rules
 
 When you discover work not in the task, apply these rules automatically. Track all deviations in your report.
@@ -173,4 +208,5 @@ Check each item before submitting your report:
 - [ ] No scope creep — only touched files in task scope (deviation rules applied if triggered)
 - [ ] Verification output is included (not "it should work" — actual command output)
 - [ ] Report format complete with all required sections
+- [ ] Status line declared as the very first line of the report
 - [ ] No permission-seeking phrases: "shall I continue", "should I proceed", "let me know what you think" are not in your report — you report outcomes, not ask for approval

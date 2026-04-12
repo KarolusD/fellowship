@@ -11,13 +11,21 @@ Usage:
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 
+# Strip ANTHROPIC_API_KEY from subprocess env so nested `claude` calls fall back
+# to Keychain/subscription auth instead of billing against API credits.
+_SUBPROCESS_ENV = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+
+
 def run_subprocess(cmd: list[str], timeout: int = 120) -> tuple[str, str, int]:
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, timeout=timeout, env=_SUBPROCESS_ENV
+    )
     return result.stdout, result.stderr, result.returncode
 
 
@@ -30,14 +38,22 @@ def build_prompt(agent_instructions: str, scenario: dict) -> str:
 
 
 def run_scenario(scenario: dict, agent_instructions: str) -> str:
-    """Invoke the agent for a single scenario. Returns the response string."""
+    """Invoke the agent for a single scenario. Returns the response string.
+
+    On timeout, returns an empty string — a slow scenario counts as a failure
+    for assertion purposes but must not crash the whole cycle.
+    """
     prompt = build_prompt(agent_instructions, scenario)
-    stdout, stderr, code = run_subprocess(
-        ["claude", "--dangerously-skip-permissions",
-         "--model", "claude-haiku-4-5", "--print", prompt],
-        timeout=120,
-    )
-    return stdout.strip()
+    try:
+        stdout, stderr, code = run_subprocess(
+            ["claude", "--dangerously-skip-permissions",
+             "--model", "claude-haiku-4-5", "--print", prompt],
+            timeout=180,
+        )
+        return stdout.strip()
+    except subprocess.TimeoutExpired:
+        print(f"  [eval] scenario {scenario.get('id', 'unknown')} timed out — counting as failure", file=sys.stderr)
+        return ""
 
 
 def run_hard_assertions(hard_protected: str, response: str, scenario: dict) -> dict[str, bool]:

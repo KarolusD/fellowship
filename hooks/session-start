@@ -70,6 +70,41 @@ if [ -f "$PRODUCT" ]; then
     fi
 fi
 
+# ── 4. debug-log.md (last ~3 entries if file exists and non-empty) ───────────
+DEBUG_LOG="${FELLOWSHIP_DIR}/debug-log.md"
+if [ -f "$DEBUG_LOG" ]; then
+    debug_raw=$(tail -60 "$DEBUG_LOG" 2>/dev/null || echo "")
+    if [ -n "$debug_raw" ]; then
+        debug_escaped=$(escape_for_json "$debug_raw")
+        session_context="${session_context}\\n<DEBUG_LOG>\\n${debug_escaped}\\n</DEBUG_LOG>"
+    fi
+fi
+
+# ── 5. Most recent handoff (if written within last 7 days) ───────────────────
+HANDOFFS_DIR="${FELLOWSHIP_DIR}/handoffs"
+if [ -d "$HANDOFFS_DIR" ]; then
+    recent_handoff=$(find "$HANDOFFS_DIR" -name "*.md" -mtime -7 -type f 2>/dev/null \
+        | sort -r | head -1)
+    if [ -n "$recent_handoff" ]; then
+        handoff_raw=$(cat "$recent_handoff" 2>/dev/null || echo "")
+        if [ -n "$handoff_raw" ]; then
+            handoff_name=$(basename "$recent_handoff")
+            handoff_escaped=$(escape_for_json "$handoff_raw")
+            session_context="${session_context}\\n<HANDOFF file=\"${handoff_name}\">\\n${handoff_escaped}\\n</HANDOFF>"
+        fi
+    fi
+fi
+
+# ── 6. codebase-map.md (first 30 lines if file exists) ───────────────────────
+CODEBASE_MAP="${FELLOWSHIP_DIR}/codebase-map.md"
+if [ -f "$CODEBASE_MAP" ]; then
+    map_raw=$(head -30 "$CODEBASE_MAP" 2>/dev/null || echo "")
+    if [ -n "$map_raw" ]; then
+        map_escaped=$(escape_for_json "$map_raw")
+        session_context="${session_context}\\n<CODEBASE_MAP>\\n${map_escaped}\\n</CODEBASE_MAP>"
+    fi
+fi
+
 # ── Output context as JSON ────────────────────────────────────────────────────
 # Cursor hooks expect additional_context.
 # Claude Code hooks expect hookSpecificOutput.additionalContext.

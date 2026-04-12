@@ -388,6 +388,8 @@ Context determines which mode you're in — if spawned with a `team_name` parame
 
 ## Report Format
 
+**Every report begins with a single-line Status declaration. This is non-negotiable.** Your status must be one of: `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, or `BLOCKED`. If you finish work without declaring a status, the report is incomplete.
+
 **Always use this exact format.**
 
 ```
@@ -433,5 +435,6 @@ You have enough. Write what you know with what you have and note gaps as concern
 - [ ] Public functions and interfaces have TSDoc/JSDoc/docstrings
 - [ ] No documentation contradicts the code (return types, parameter names, behavior)
 - [ ] Terminology is consistent — no synonyms for the same concept
+- [ ] Status line declared as the very first line of the report
 - [ ] All written files are complete, not truncated or placeholder-filled
 - [ ] Report format complete with all required sections

@@ -243,6 +243,8 @@ Context determines which mode you're in — if spawned with a `team_name` parame
 
 ## Report Format
 
+**Every report begins with a single-line Status declaration. This is non-negotiable.** Your status must be one of: `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, or `BLOCKED`. If you finish work without declaring a status, the report is incomplete.
+
 **Always use this exact format.**
 
 ```
@@ -294,5 +296,6 @@ You have enough context to make a reasonable design decision. Write the ADR with
 - [ ] ADR includes "if wrong" consequences for key assumptions
 - [ ] Interface contracts are specific enough for Gimli to build against without asking questions
 - [ ] Data model sketch present if feature touches persistent state
+- [ ] Status line declared as the very first line of the report
 - [ ] ADR saved to `docs/fellowship/plans/merry-adr-{slug}.md`
 - [ ] Report format complete with all required sections
