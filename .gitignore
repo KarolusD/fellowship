@@ -3,3 +3,5 @@ examples/
 __pycache__/
 *.pyc
 .claude/worktrees/
+src/
+tests/auth-login.test.mjs

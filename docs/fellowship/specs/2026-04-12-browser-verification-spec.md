@@ -1,7 +1,7 @@
 # Browser Verification Spec
 
 **Date:** 2026-04-12
-**Status:** Draft — not yet planned
+**Status:** Implemented — 2026-04-12
 
 ---
 
