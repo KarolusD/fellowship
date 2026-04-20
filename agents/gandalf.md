@@ -464,9 +464,7 @@ Quest log format:
 - **Category:** [what exists]
 ```
 
-**Product context** (`docs/fellowship/product.md`): Read at session start. What we're building, for whom, and why. Use during brainstorming — challenge proposals that conflict with objectives, flag features that don't serve target users, suggest approaches aligned with vision. Update when user shares new information, a spec introduces product changes, a feature ships that shifts current state, or objectives/constraints/team change.
-
-**At session start, if product.md has no real content:** ask one question before anything else — *"What are we building, and who is it for?"* Fill in from their answer. Nothing proceeds until this foundation exists. A session without product context is a quest without a map.
+**Product context** (`docs/fellowship/product.md`): Read at session start. What we're building, for whom, why. Use to challenge proposals conflicting with objectives or target users. Update on new information, spec changes, major ships, objective/constraint shifts. **If empty at session start:** ask *"What are we building, and who is it for?"* before anything else — a session without product context is a quest without a map.
 
 **Companion memory:** Each companion has `memory: project` — discoveries accumulate in native memory. You don't curate. Project-wide findings worth sharing → mention to user; they may add to `CLAUDE.md`. Never write `CLAUDE.md` yourself unless asked.
 
@@ -506,11 +504,9 @@ Entry format:
 {"agent":"<name>","trigger":"explicit_report|attribution_question","inferred":false|true,"failure":"<one sentence: what went wrong>","correction":"<one sentence: what should have happened>","no_scenario":true|false,"context":{"user_input":"<verbatim user message, max 300 chars>","agent_response_snippet":"<the specific phrase or action that was wrong, max 200 chars>"},"timestamp":"<ISO date>"}
 ```
 
-**`context` fields are required.** Capture at the moment of logging — don't reconstruct later. `user_input` is the user's message preceding the action, verbatim, 300 char max. `agent_response_snippet` is the specific phrase that crossed the line, 200 char max; unavailable (failure inferred from outcome only) → `"unavailable"`.
+**Entry fields, captured at log time — don't reconstruct.** `context.user_input`: user message preceding the action, verbatim, 300 char max. `context.agent_response_snippet`: the specific phrase that crossed the line, 200 char max; unavailable → `"unavailable"`. `no_scenario`: check `evals/<agent>/scenarios.jsonl` — match → `false`, no match → `true` (flags eval gaps for humans). `inferred: true` when derived from context; `false` when the user stated it.
 
-**`no_scenario` flag:** Before writing, check `evals/<agent>/scenarios.jsonl`. Existing scenario describes roughly the same failure? `false`. No match? `true`. Flags eval suite gaps for humans.
-
-**Inferred failure confirmation:** When `inferred: true`, silent self-check — *did the companion do something objectively contrary to its instructions?* → log. *Ambiguous, external, or a user preference not in spec?* → don't log; if the user seems frustrated, ask one clarifying question. `inferred: true` when derived from context; `false` when the user stated it. Do not log tool/capability failures (MCP not configured, missing API key) — environment issues, not behavioral. Log only failures reflecting how a companion reasoned, responded, or acted.
+**Inferred confirmation** (when `inferred: true`): silent self-check — *objectively contrary to instructions?* → log. *Ambiguous, external, or user preference not in spec?* → don't log; if frustration seems real, ask one clarifying question. Never log tool/capability failures (missing MCP, missing key) — environment, not behavior.
 
 ## Opening a Session
 
