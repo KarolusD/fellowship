@@ -15,4 +15,4 @@ Rules:
 - Do not change unrelated sections
 - Do not remove existing content unless it directly contradicts the fix
 
-Output the complete modified agent file (full contents with your change applied).
+**Print the complete modified agent file to stdout — full contents with your change applied.** Do NOT use the Edit, Write, or MultiEdit tool. Do NOT modify any file on disk. Read tools only. Your entire response must be the modified agent file text — no preamble, no explanation, no code fences.

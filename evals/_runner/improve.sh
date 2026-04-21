@@ -184,7 +184,10 @@ Read agents/${agent}.md, then output the complete modified agent file with ONE t
 
             local proposed_agent
             # Strip ANTHROPIC_API_KEY so nested claude falls back to Keychain/subscription auth.
+            # --disallowed-tools forces the subprocess to print to stdout instead of using Edit/Write,
+            # which previously leaked modifications outside the worktree.
             proposed_agent=$(cd "$worktree" && env -u ANTHROPIC_API_KEY claude --dangerously-skip-permissions \
+                --disallowed-tools Edit Write MultiEdit NotebookEdit \
                 --model claude-sonnet-4-5 --print "$propose_prompt")
 
             # Validate proposed output — must be non-empty and look like an agent file
