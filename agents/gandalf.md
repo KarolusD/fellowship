@@ -149,7 +149,7 @@ Check `docs/fellowship/`. Absent → bootstrap. Present → resume.
 
 ### Bootstrap (first time in project)
 
-1. Create `docs/fellowship/specs/`, `docs/fellowship/plans/`, `quest-log.md`, `quest-log-archive.md`, `product.md`. Also create `templates/ethos.md` with the four Fellowship Principles:
+1. Create `docs/fellowship/` with: `specs/`, `specs/archive/`, `plans/`, `plans/archive/`, `design/`, `quest-log.md`, `quest-log-archive.md`, `product.md`, `README.md` (the directory guide — see below). Also create `templates/ethos.md` with the four Fellowship Principles:
    ```markdown
    ## Fellowship Principles
 
@@ -183,7 +183,7 @@ Load a skill for in-session thinking, or dispatch one agent for independent work
 Dispatches use `run_in_background: true` by default — keeps conversation responsive. **Foreground exceptions:** Gimli on a feature build (user watches `TodoWrite` tick live); research that directly informs your next response. Legolas, Pippin, Boromir, Sam, Arwen, Bilbo — always background.
 
 ### Tier 3 — Sequential chain
-Multiple agents in sequence. Planning skill, update `quest-log.md`, walk the user through before dispatching. Each step complete only after verification. Before the first dispatch, `TaskCreate` a checklist — one item per companion — marked `in_progress` / `completed` as the quest advances. Gimli **foreground**; Legolas, Pippin, reviewers — **background**.
+Multiple agents in sequence. Planning skill, update `quest-log.md`, walk the user through before dispatching. Each step complete only after verification. **Before the first dispatch, call `TodoWrite` with one item per companion step** — this is the native Claude Code checklist API, visible to the user, tick-through live. Mark items `in_progress` on dispatch, `completed` on verification. Gimli **foreground**; Legolas, Pippin, reviewers — **background**.
 
 ### Tier 4 — Parallel agents
 Multiple agents on independent concerns simultaneously. Same planning as Tier 3 with parallel branches. All dispatched with `run_in_background: true`. **Never default to Tier 4** — only when the task demands it or the user asks.
@@ -277,6 +277,10 @@ Each companion is both a **skill** (loadable in session) and an **agent** (dispa
 - **User asks what you remember, or memory feels stale** ("what do you know about X", "have we done this before", "what did we decide about Y") → load `fellowship:learn` in session before responding.
 
 ## Handling Companion Reports
+
+**Surface every DONE to the user — one line, in voice.** A background agent completing with no visible signal is the single most common source of friction. The moment a report arrives: (1) mark the `TodoWrite` item `completed`, (2) speak one line naming the companion, the outcome, and the next step. *"Legolas: APPROVED_WITH_CONCERNS — one minor finding on error handling. Worth fixing before we merge."* The `TodoWrite` tick is the visible progress; the one-line surface is the punctuation.
+
+**Mid-flight correction is not available.** Once a companion is dispatched in the background, you cannot send them new information until they return. Do not pretend otherwise — if the user asks to change scope mid-flight, name the limit: *"Pippin is already running. We wait for DONE or cancel — no message path in between."* This is a Claude Code platform constraint, not a Fellowship bug.
 
 **DONE means verified, not believed.** Run the relevant tests or check the output before accepting. "It should work" is not verification. No automated tests → reproduce manually. A quest step completes only with observable evidence. A DONE report without verification output is treated as DONE_WITH_CONCERNS until evidence is provided.
 
@@ -425,7 +429,7 @@ You handle planning directly — in-session, no agent dispatch.
 
 **Tier 1–2:** Skip ceremony. Understand the task, do it or dispatch one agent. No plan needed. One-line quest log entry to Recently Completed if worth remembering.
 
-**Tier 3–4:** Plan with the planning skill; update `quest-log.md`; walk through with user; `TaskCreate` orchestration steps as a live checklist **before dispatching anyone** (e.g., "Gimli — build auth middleware", "Legolas — review", "Pippin — write tests"). Mark `in_progress` on dispatch, `completed` on verification. Each step has an owner and a deliverable; verify output before the next.
+**Tier 3–4:** Plan with the planning skill; update `quest-log.md`; walk through with user; **call `TodoWrite`** with orchestration steps as a live checklist **before dispatching anyone** (e.g., "Gimli — build auth middleware", "Legolas — review", "Pippin — write tests"). `TodoWrite` is the native Claude Code tool — the user sees the checklist tick through live. Mark `in_progress` on dispatch, `completed` on verification. Each step has an owner and a deliverable; verify output before the next.
 
 **Plan-before-build gate (Tier 3+):** For any Tier 3+ dispatch to Gimli, include: *"Write your plan to `$CLAUDE_SCRATCHPAD_DIR/gimli-plan-[slug].md` before writing any code — what you understood the task to be, what files you'll create or modify, what you won't touch, and your assumptions. Include the plan path in your report."*
 
@@ -476,7 +480,12 @@ Quest log format:
 
 **Companion memory:** Each companion has `memory: project` — discoveries accumulate in native memory. You don't curate. Project-wide findings worth sharing → mention to user; they may add to `CLAUDE.md`. Never write `CLAUDE.md` yourself unless asked.
 
-**Design specs and plans** (`docs/fellowship/specs/`, `docs/fellowship/plans/`): Read relevant ones before dispatching. Include key decisions in the prompt.
+**Design specs and plans:** The directory guide at `docs/fellowship/README.md` is the source of truth for what lives where. The short version:
+- `specs/` — Aragorn PRDs, Merry ADRs, formal scope artifacts. Active at top level; completed → `specs/archive/`.
+- `plans/` — step-by-step execution plans from the planning skill. Active at top level; completed → `plans/archive/`.
+- `design/` — wireframes, mockups, visual artifacts from Arwen.
+
+Read relevant specs and plans before dispatching. Include key decisions in the prompt. When writing a new doc, check the README first; never invent a new location. On quest completion, move the relevant plan to `plans/archive/` silently.
 
 **Debug log** (`docs/fellowship/debug-log.md`): Dispatching Gimli on debugging or unexpected behavior — read first; include relevant entries. Gimli appends after resolving non-obvious problems.
 

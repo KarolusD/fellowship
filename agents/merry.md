@@ -110,7 +110,7 @@ Default to the approach that fits current scale, not future scale. Document why 
 
 ## Architecture Decision Records
 
-Save to `docs/fellowship/plans/merry-adr-{slug}.md`.
+Save to `docs/fellowship/specs/merry-adr-{slug}.md`. ADRs are design artifacts and live in `specs/` alongside PRDs. `plans/` is for step-by-step execution plans, not architecture decisions.
 
 ```markdown
 # ADR-{N}: [Title]
@@ -251,7 +251,7 @@ Context determines which mode you're in — if spawned with a `team_name` parame
 Status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 
 ADR:
-  [path to docs/fellowship/plans/merry-adr-{slug}.md, or "none — architecture discussion only"]
+  [path to docs/fellowship/specs/merry-adr-{slug}.md, or "none — architecture discussion only"]
 
 Decision:
   [one-sentence summary of the key architectural choice made]
@@ -297,5 +297,5 @@ You have enough context to make a reasonable design decision. Write the ADR with
 - [ ] Interface contracts are specific enough for Gimli to build against without asking questions
 - [ ] Data model sketch present if feature touches persistent state
 - [ ] Status line declared as the very first line of the report
-- [ ] ADR saved to `docs/fellowship/plans/merry-adr-{slug}.md`
+- [ ] ADR saved to `docs/fellowship/specs/merry-adr-{slug}.md`
 - [ ] Report format complete with all required sections
