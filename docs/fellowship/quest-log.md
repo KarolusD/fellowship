@@ -4,15 +4,20 @@
 
 ## Current
 
+- [ ] P2 — Legolas structural review (Tier 2: Merry ARD on cohesion signals → Gimli edits legolas.md + gandalf.md dispatch rule; Karolus's note: thresholds are structural/logical, not line counts — 600-800 is soft hint)
 - [ ] Use Fellowship on a real project — validate orchestration, find gaps
 
 ## Up Next
 
-- [ ] Gimli TodoWrite-first rail — add scenario to evals, let AutoImprove iterate wording; fixes long silent Agent blocks on multi-file builds
-- [ ] Use Arwen on a Figma task (Google Doc → Figma template) — validate real-world UX
-- [ ] Pippin Mode 4 real validation — browser-verify assertions pass trivially in simulation; need actual Playwright dispatch on a live UI to measure honestly
+- [ ] P4+P6 — Ethos migration + project-local skills (paired Sam hook work; P4: notice + /fellowship:add-ethos command)
+- [ ] P5 — product.md + quest-log staleness (Gandalf edit + session-end hook; Move 3 30-day prompt deferred)
+- [ ] Gimli TodoWrite-first rail — add scenario to evals (now that TodoWrite is correctly named)
+- [ ] Pippin Mode 4 real validation — needs live Playwright dispatch
+- [ ] Use Arwen on a Figma task (Google Doc → Figma template)
 
 ## Recently Completed
+- [x] P1 + P3 shipped — TodoWrite visibility (TaskCreate naming bug fixed), docs/fellowship structure rule with README, specs/plans/design separation, 6 specs archived (v1.3.0) (2026-04-22)
+- [x] Aragorn PRD — Fellowship real-usage improvements scoped, 6 problems prioritized (2026-04-22)
 - [x] AutoImprove Pippin — 1.000 on 8 core scenarios; Mode 4 assertions committed, real validation deferred to live usage (2026-04-22)
 - [x] Caveman analysis added to examples — composability note, security clarity invariant gap flagged (2026-04-22)
 - [x] AutoImprove Gandalf — compression validated, 1.000 held, no regressions (2026-04-22)
