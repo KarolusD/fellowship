@@ -47,8 +47,8 @@ for idx, scenario in enumerate(holdout_scenarios, 1):
 
         # Run hard assertions
         hard_result = subprocess.run(
-            ["python3", "evals/gandalf/hard.py"],
-            capture_output=True, text=True, cwd="/Users/Karolus/projects/Fellowship"
+            ["python3", "evals/gandalf/hard.py", "/tmp/eval_scenario.json"],
+            input=response, capture_output=True, text=True, cwd="/Users/Karolus/projects/Fellowship"
         )
 
         # Parse hard results

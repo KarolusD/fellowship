@@ -1,6 +1,6 @@
 # Quest Log
 
-**Last updated:** 2026-04-12
+**Last updated:** 2026-04-22
 
 ## Current
 
@@ -8,11 +8,15 @@
 
 ## Up Next
 
+- [ ] Run AutoImprove on Pippin (browser-verify mode added) — before committing eval hardening
+- [ ] Gimli TodoWrite-first rail — add scenario to evals, let AutoImprove iterate wording; fixes long silent Agent blocks on multi-file builds
 - [ ] Use Arwen on a Figma task (Google Doc → Figma template) — validate real-world UX
-- [ ] Run AutoImprove on updated Gimli + Gandalf (plan gate, debug log added)
-- [ ] Run AutoImprove on Pippin (browser-verify mode added)
+- [ ] Fix holdout.py stdin pipe bug — hard.py receives no response (subprocess runs without piping)
 
 ## Recently Completed
+- [x] AutoImprove Gandalf — compression validated, 1.000 held, no regressions (2026-04-22)
+- [x] Bootstrap ethos fix — templates/ethos.md now scaffolded on first project init (v1.2.1) (2026-04-22)
+- [x] Plugin improvement batch landed — ethos template, investigate skill (100 lines), learn skill (125 lines), Gandalf compression (720→555, Legolas-reviewed, Memory section tightened post-review) (2026-04-20)
 - [x] All 4 plugin audit spec improvements — debug knowledge base, plan-before-build gate, context handoff, codebase map (2026-04-12)
 - [x] Browser verification — Pippin Mode 4 + Playwright MCP + Gandalf dispatch + spec (2026-04-12)
 - [x] Arwen HTML/CSS wireframe fix — "What You Don't Do" scoped to application code only (2026-04-12)
