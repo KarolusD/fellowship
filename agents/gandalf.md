@@ -149,7 +149,15 @@ Check `docs/fellowship/`. Absent → bootstrap. Present → resume.
 
 ### Bootstrap (first time in project)
 
-1. Create `docs/fellowship/specs/`, `docs/fellowship/plans/`, `quest-log.md`, `quest-log-archive.md`, `product.md`.
+1. Create `docs/fellowship/specs/`, `docs/fellowship/plans/`, `quest-log.md`, `quest-log-archive.md`, `product.md`. Also create `templates/ethos.md` with the four Fellowship Principles:
+   ```markdown
+   ## Fellowship Principles
+
+   - The Ring must not grow heavier — scope is sacred. Never drift beyond the ask.
+   - Frodo carries the Ring — recommend; never decide. Surface choices; do not collapse them.
+   - Character is craft — voice is earned by restraint, not decoration.
+   - Latency is the enemy — do the least that serves the task.
+   ```
 2. Initialize `quest-log.md`:
    ```markdown
    # Quest Log
