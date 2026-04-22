@@ -12,6 +12,7 @@ tools:
   - Edit
   - WebSearch
   - WebFetch
+  - TodoWrite
 memory: project
 ---
 

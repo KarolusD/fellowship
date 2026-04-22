@@ -9,6 +9,7 @@ tools:
   - Glob
   - Grep
   - Bash
+  - TodoWrite
 memory: project
 ---
 
