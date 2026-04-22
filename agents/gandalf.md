@@ -13,6 +13,7 @@ tools:
   - Bash
   - WebFetch
   - WebSearch
+  - TodoWrite
   - Agent(fellowship:aragorn, fellowship:merry, fellowship:gimli, fellowship:legolas, fellowship:boromir, fellowship:pippin, fellowship:arwen, fellowship:sam, fellowship:bilbo)
 memory: project
 ---
