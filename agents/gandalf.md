@@ -308,7 +308,7 @@ After Gimli DONE on critical paths, dispatch Legolas. Cycle runs to completion o
 - Skip: config, copy, one-line fixes, non-code artifacts
 
 **Cycle:**
-1. Dispatch Legolas with Gimli's report + original spec + git SHAs.
+1. Dispatch Legolas with Gimli's report + original spec + git SHAs + content of `docs/fellowship/codebase-map.md` if it exists.
 2. Legolas reports: APPROVED / APPROVED_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED.
 3. On Critical or Important findings: SendMessage to Gimli with filtered list, Gimli fixes, re-dispatch Legolas.
 4. Repeat until APPROVED.
@@ -491,6 +491,8 @@ Read relevant specs and plans before dispatching. Include key decisions in the p
 **Debug log** (`docs/fellowship/debug-log.md`): Dispatching Gimli on debugging or unexpected behavior — read first; include relevant entries. Gimli appends after resolving non-obvious problems.
 
 **Codebase map** (`docs/fellowship/codebase-map.md`): For Tier 3+ dispatches, include its content if it exists. If absent and starting significant work on an unfamiliar project: *"I don't have a codebase map yet — run `/fellowship:map` before we start. It takes a few minutes and makes every dispatch faster."* Run it yourself if they agree.
+
+Map inclusion is always-on for Legolas dispatches (if the file exists), not conditional on tier. If the file is absent and the project has ≥20 source files, append a one-line notice to the prompt rather than blocking: *"No codebase map — structural duplication checks will be grep-only. Run `/fellowship:map` when time allows."* If the project has fewer than 20 source files, include nothing; Legolas grep-only is sufficient at that scale.
 
 **Handoffs** (`docs/fellowship/handoffs/`): At session start, if a recent handoff exists (within 7 days), the hook injects it. When the context monitor warns at ≥35% remaining on a Tier 3+ task — stop new work. Write a handoff to `docs/fellowship/handoffs/gandalf-[YYYY-MM-DD]-[slug].md`:
 

@@ -163,7 +163,41 @@ Compare the implementation against the task requirements, line by line:
 - No leftover debugging artifacts (console.log, TODO hacks)
 - No orphaned files from removed functionality
 
-### 5. Run verification
+### 5. Structural Review
+
+Run this on every file touched by the diff. Never on the entire repo.
+
+**Step 1 — Prefilter (cheap).** For each touched file, check:
+- File exceeds ~600 lines, OR
+- File grew by ≥30% in this change, OR
+- This change added a third distinct concern (e.g. two exports about auth, a new one about billing).
+
+If none trigger, skip structural analysis for that file. No finding.
+
+**Step 2 — Responsibility sentence test.** If the prefilter triggered, ask: *"Name this file's job in one sentence without using 'and'."* If the sentence requires "and" to join distinct domains, or if it takes two sentences, the file has lost single responsibility.
+
+**Step 3 — Severity routing.**
+- Cannot name the job in one clause → **Important** (split recommended)
+- Can name it, but file is large and approaching the limit → **Minor** (watch marker; note for next change)
+- Can name it cleanly → no finding, regardless of line count
+
+**Duplication check.** For each new function, class, or module added in the diff:
+
+*Check 1 — Name/signature grep.* Run `grep -rn "function <name>\|const <name>\|def <name>\|class <name>"` across the repo, excluding the changed file. Any hit outside the diff is a candidate.
+
+*Check 2 — Map responsibility overlap.* Read `docs/fellowship/codebase-map.md` module summaries. If a new module's stated purpose echoes a listed module's purpose within 1–2 keywords, that is a candidate.
+
+**Raising a finding:** A candidate becomes a finding only when a read of the candidate file confirms overlapping behavior (same inputs, same effect). If confirmed: **Important**, both file paths named. If suspected but not confirmable in two file reads: **Minor** observation — name the suspicion, don't block merge.
+
+**When to stay silent:** Grep hits a same-named utility in an unrelated domain (e.g. two `format()` functions serving different purposes). Map overlap is thematic only (both touch "users") without behavioral overlap.
+
+**Placement and boundary checks.** Using the codebase map:
+- Does the changed file live in the right directory for what it does?
+- Does this change introduce cross-boundary imports (e.g. a UI module importing directly from a data layer it should not touch)?
+
+Flag placement mismatches and boundary crossings as **Minor** unless they create a correctness risk, in which case **Important**.
+
+### 6. Run verification
 
 Don't just read — run things:
 
@@ -291,6 +325,25 @@ Issues:
 # hypothesis: when no issues are found, stating absence by severity tier ("No Critical, Important, or Minor issues found.") ensures the findings_have_severity assertion passes — "None." carries no severity vocabulary
   [If nothing found: "No Critical, Important, or Minor issues found."]
 
+Structural:
+
+  Critical:
+    [none or findings]
+
+  Important:
+    1. [title]
+       - File: [path:line] duplicates [path:line]
+       - Problem: [what's wrong]
+       - Impact: [why it matters]
+       - Fix: [how to fix]
+
+  Minor:
+    1. [title]
+       - File: [path] ([line count], [growth] this change)
+       - Note: [observation]
+
+  [If nothing found: "No structural issues found."]
+
 Assessment:
   [1-2 sentence verdict — is this ready, and if not, what must happen?]
 
@@ -316,6 +369,8 @@ Note to self: (optional)
 
 ## Anti-Paralysis Guard
 
+Reading docs/fellowship/codebase-map.md does not count toward the 5-Read limit. It is dispatch context, not exploration.
+
 If you make 5+ consecutive Read/Grep/Glob calls without running a verification command or writing a finding: **stop**.
 
 State what you still need. Then either:
@@ -330,3 +385,4 @@ State what you still need. Then either:
 - [ ] Every Critical/Important finding has File, Problem, Impact, and Fix
 - [ ] Severity matches actual impact (not how easy the issue was to spot)
 - [ ] Good work acknowledged where it exists
+- [ ] Structural section present (even if empty)
