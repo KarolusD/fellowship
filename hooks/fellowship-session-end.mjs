@@ -63,5 +63,26 @@ try {
   // File write failure — don't crash, just exit cleanly
 }
 
+// ── Quest-log consolidation check (P5 Move 2) ──────────────────────────
+const questLogPath = join(fellowshipDir, 'quest-log.md');
+if (existsSync(questLogPath)) {
+  try {
+    const content = readFileSync(questLogPath, 'utf8');
+    // Extract the ## Current section (between ## Current and the next ## heading)
+    const currentMatch = content.match(/##\s+Current\s*\n([\s\S]*?)(?=\n##\s+)/);
+    if (currentMatch) {
+      const currentBlock = currentMatch[1];
+      const completedInCurrent = (currentBlock.match(/^-\s*\[x\]/gm) || []).length;
+      if (completedInCurrent > 0) {
+        const noticePath = join(fellowshipDir, '.quest-log-reminder');
+        const noticeLine = `${completedInCurrent} completed item(s) in Current not yet moved to Recently Completed. Consolidate next session.\n`;
+        writeFileSync(noticePath, noticeLine, 'utf8');
+      }
+    }
+  } catch {
+    // Don't crash session-end on parse failure
+  }
+}
+
 respond();
 process.exit(0);

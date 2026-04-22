@@ -9,13 +9,13 @@
 ## Up Next
 
 - [ ] Pippin — eval scenario for structural duplication case (P2 acceptance dep)
-- [ ] P4+P6 — Ethos migration + project-local skills (paired Sam hook work; P4: notice + /fellowship:add-ethos command)
-- [ ] P5 — product.md + quest-log staleness (Gandalf edit + session-end hook; Move 3 30-day prompt deferred)
 - [ ] Gimli TodoWrite-first rail — add scenario to evals (now that TodoWrite is correctly named)
 - [ ] Pippin Mode 4 real validation — needs live Playwright dispatch
 - [ ] Use Arwen on a Figma task (Google Doc → Figma template)
+- [ ] Session-end quest-log regex edge case — won't match if `## Current` is the last section (Sam flagged, non-fatal)
 
 ## Recently Completed
+- [x] P4+P5+P6 shipped — ethos absence notice, project-local skills survey, quest-log consolidation reminder, /fellowship:add-ethos command, Gandalf product.md triggers + Project-Local section (v1.5.0) (2026-04-22)
 - [x] P2 shipped — Legolas structural review (Merry ADR → Gimli implementation; prefilter + responsibility test + duplication grep + map + Structural: section + anti-paralysis carve-out) (2026-04-22)
 - [x] TodoWrite whitelist — all 10 agents now have TodoWrite (v1.3.2); Gandalf also has Agent(...) for fellowship dispatches (2026-04-22)
 - [x] P1 + P3 shipped — TodoWrite visibility (TaskCreate naming bug fixed), docs/fellowship structure rule with README, specs/plans/design separation, 6 specs archived (v1.3.0) (2026-04-22)

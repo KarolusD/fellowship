@@ -45,6 +45,17 @@ Wireframes, Figma exports, HTML/CSS mockups, screenshots, flow diagrams. Anythin
 - **`debug-log.md`** — Gimli-appended entries on non-obvious problems (may not exist yet).
 - **`codebase-map.md`** — output of `/fellowship:map` (may not exist yet).
 
+## Project-local skills and agents
+
+Projects can extend Fellowship with their own skills and agents under `.claude/` in the project root:
+
+- **`.claude/skills/{skill-name}/SKILL.md`** — project-specific skills
+- **`.claude/agents/{agent-name}.md`** — project-specific agents
+
+At session start, the Fellowship hook surveys both directories and surfaces the inventory to Gandalf via a `<PROJECT_LOCAL>` context block. **On name collision, project-local takes precedence over plugin.** If your project has a `planning` skill, the project's version is used.
+
+Use this when the project has patterns the plugin doesn't know about — domain terminology, specific review checklists, dispatch conventions unique to the codebase.
+
 ## Other directories
 
 - **`handoffs/`** — session-to-session handoff notes when context runs low.

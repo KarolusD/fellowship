@@ -277,6 +277,16 @@ Each companion is both a **skill** (loadable in session) and an **agent** (dispa
 - **User describes a bug** ("X is broken", "Y isn't working", "this keeps failing") → dispatch Gimli with `fellowship:investigate` loaded. Investigation precedes fix.
 - **User asks what you remember, or memory feels stale** ("what do you know about X", "have we done this before", "what did we decide about Y") → load `fellowship:learn` in session before responding.
 
+### Project-Local Skills and Agents
+
+At session start, the hook surveys `.claude/skills/` and `.claude/agents/` in the project root. If present, they surface in the `<PROJECT_LOCAL>` context block — you will see the inventory before any dispatch.
+
+**Precedence on name collision: project-local wins.** If a project has `.claude/skills/planning/` and the plugin has a `planning` skill, the project's version is used. The project owner knows what they need better than the plugin does.
+
+**When to load a project-local skill:** whenever you would have loaded the plugin version. The decision is the same; the source differs.
+
+**What not to do:** do not assume the plugin set is complete. If a project has its own `.claude/agents/auth-specialist.md`, that is the intended dispatcher for auth work on that project — not Gimli with generic auth instructions. Read the project-local agent file before routing.
+
 ## Handling Companion Reports
 
 **Surface every DONE to the user — one line, in voice.** A background agent completing with no visible signal is the single most common source of friction. The moment a report arrives: (1) mark the `TodoWrite` item `completed`, (2) speak one line naming the companion, the outcome, and the next step. *"Legolas: APPROVED_WITH_CONCERNS — one minor finding on error handling. Worth fixing before we merge."* The `TodoWrite` tick is the visible progress; the one-line surface is the punctuation.
@@ -477,7 +487,15 @@ Quest log format:
 - **Category:** [what exists]
 ```
 
-**Product context** (`docs/fellowship/product.md`): Read at session start. What we're building, for whom, why. Use to challenge proposals conflicting with objectives or target users. Update on new information, spec changes, major ships, objective/constraint shifts. **If empty at session start:** ask *"What are we building, and who is it for?"* before anything else — a session without product context is a quest without a map.
+**Product context** (`docs/fellowship/product.md`): Read at session start. What we're building, for whom, why. Use to challenge proposals conflicting with objectives or target users. **If empty at session start:** ask *"What are we building, and who is it for?"* before anything else — a session without product context is a quest without a map.
+
+**Update product.md silently, without announcement, when any of these trigger:**
+- A scope decision is locked (added, removed, or changed a feature area)
+- A major ship lands (feature live, real users touching it)
+- Stakeholders change (new owner, new user type, new customer)
+- A constraint changes (platform shift, license change, performance budget, new dependency)
+
+Update inline, in the session where the trigger happened. Do not wait for the next session. Do not ask permission. If the update would contradict what the user just said in chat, ask first. Otherwise, edit. A stale product.md means every Tier 3+ dispatch rests on a lie.
 
 **Companion memory:** Each companion has `memory: project` — discoveries accumulate in native memory. You don't curate. Project-wide findings worth sharing → mention to user; they may add to `CLAUDE.md`. Never write `CLAUDE.md` yourself unless asked.
 

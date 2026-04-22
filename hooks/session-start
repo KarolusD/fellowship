@@ -105,6 +105,64 @@ if [ -f "$CODEBASE_MAP" ]; then
     fi
 fi
 
+# ── 7. Ethos absence check (P4) ──────────────────────────────────────────────
+ETHOS_FILE="${PROJECT_CWD}/templates/ethos.md"
+if [ -d "$FELLOWSHIP_DIR" ] && [ ! -f "$ETHOS_FILE" ]; then
+    notice="Ethos missing. Run \`/fellowship:add-ethos\` to add the four Fellowship Principles to templates/ethos.md."
+    notice_escaped=$(escape_for_json "$notice")
+    session_context="${session_context}\\n<ETHOS_NOTICE>\\n${notice_escaped}\\n</ETHOS_NOTICE>"
+fi
+
+# ── 8. Project-local skills and agents survey (P6) ───────────────────────────
+CLAUDE_DIR="${PROJECT_CWD}/.claude"
+if [ -d "$CLAUDE_DIR" ]; then
+    skill_count=0
+    agent_count=0
+    skill_names=""
+    agent_names=""
+
+    if [ -d "$CLAUDE_DIR/skills" ]; then
+        while IFS= read -r name; do
+            [ -n "$name" ] || continue
+            skill_names="${skill_names}${name}, "
+            skill_count=$((skill_count + 1))
+        done < <(find "$CLAUDE_DIR/skills" -maxdepth 1 -mindepth 1 -type d -exec basename {} \; 2>/dev/null)
+    fi
+
+    if [ -d "$CLAUDE_DIR/agents" ]; then
+        while IFS= read -r name; do
+            [ -n "$name" ] || continue
+            agent_names="${agent_names}${name}, "
+            agent_count=$((agent_count + 1))
+        done < <(find "$CLAUDE_DIR/agents" -maxdepth 1 -mindepth 1 -name "*.md" -exec basename {} .md \; 2>/dev/null)
+    fi
+
+    if [ $skill_count -gt 0 ] || [ $agent_count -gt 0 ]; then
+        skill_names="${skill_names%, }"
+        agent_names="${agent_names%, }"
+
+        inventory="Project-local: "
+        [ $skill_count -gt 0 ] && inventory="${inventory}${skill_count} skill(s) [${skill_names}]"
+        [ $skill_count -gt 0 ] && [ $agent_count -gt 0 ] && inventory="${inventory}, "
+        [ $agent_count -gt 0 ] && inventory="${inventory}${agent_count} agent(s) [${agent_names}]"
+        inventory="${inventory}. Project-local takes precedence over plugin on name collision."
+
+        inventory_escaped=$(escape_for_json "$inventory")
+        session_context="${session_context}\\n<PROJECT_LOCAL>\\n${inventory_escaped}\\n</PROJECT_LOCAL>"
+    fi
+fi
+
+# ── 9. Quest-log consolidation reminder (P5) ─────────────────────────────────
+REMINDER="${FELLOWSHIP_DIR}/.quest-log-reminder"
+if [ -f "$REMINDER" ]; then
+    reminder_content=$(cat "$REMINDER" 2>/dev/null || echo "")
+    if [ -n "$reminder_content" ]; then
+        reminder_escaped=$(escape_for_json "$reminder_content")
+        session_context="${session_context}\\n<QUEST_LOG_REMINDER>\\n${reminder_escaped}\\n</QUEST_LOG_REMINDER>"
+    fi
+    rm -f "$REMINDER"  # One-shot notice
+fi
+
 # ── Output context as JSON ────────────────────────────────────────────────────
 # Cursor hooks expect additional_context.
 # Claude Code hooks expect hookSpecificOutput.additionalContext.
