@@ -8,12 +8,13 @@
 
 ## Up Next
 
-- [ ] Run AutoImprove on Pippin (browser-verify mode added) — before committing eval hardening
 - [ ] Gimli TodoWrite-first rail — add scenario to evals, let AutoImprove iterate wording; fixes long silent Agent blocks on multi-file builds
 - [ ] Use Arwen on a Figma task (Google Doc → Figma template) — validate real-world UX
-- [ ] Fix holdout.py stdin pipe bug — hard.py receives no response (subprocess runs without piping)
+- [ ] Pippin Mode 4 real validation — browser-verify assertions pass trivially in simulation; need actual Playwright dispatch on a live UI to measure honestly
 
 ## Recently Completed
+- [x] AutoImprove Pippin — 1.000 on 8 core scenarios; Mode 4 assertions committed, real validation deferred to live usage (2026-04-22)
+- [x] Caveman analysis added to examples — composability note, security clarity invariant gap flagged (2026-04-22)
 - [x] AutoImprove Gandalf — compression validated, 1.000 held, no regressions (2026-04-22)
 - [x] Bootstrap ethos fix — templates/ethos.md now scaffolded on first project init (v1.2.1) (2026-04-22)
 - [x] Plugin improvement batch landed — ethos template, investigate skill (100 lines), learn skill (125 lines), Gandalf compression (720→555, Legolas-reviewed, Memory section tightened post-review) (2026-04-20)

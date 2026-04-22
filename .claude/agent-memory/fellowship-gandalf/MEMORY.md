@@ -9,3 +9,4 @@
 - [Direct Mode](project_direct_mode.md) — Companions should support standalone use for parallel work while Gandalf runs heavy cycles
 - [Voice Register](feedback_voice_register.md) — Responses come out too flat in practice; needs elevated register by default, not survey questions, sentences that gather and land
 - [CLI Agent Flag](feedback_cli_agent_flag.md) — `claude --agent fellowship:<name>` is valid; magenta/pink are invalid colors (fall back to gray); valid: red, orange, yellow, green, blue, purple, cyan
+- [Plugin Cache Bust](feedback_plugin_cache_bust.md) — Local plugin changes invisible until version bumped in plugin.json — even for private plugins. Cache-bust, not release.

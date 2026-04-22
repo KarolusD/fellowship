@@ -1,4 +1,4 @@
-examples/
+/examples/
 .DS_Store
 __pycache__/
 *.pyc
