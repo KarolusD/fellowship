@@ -1,4 +1,5 @@
 /examples/
+docs/fellowship/examples/bmad/
 .DS_Store
 __pycache__/
 *.pyc
