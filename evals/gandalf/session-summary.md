@@ -1,20 +1,46 @@
-# AutoImprove Session — gandalf — 2026-03-28
+# AutoImprove Session — gandalf — 2026-04-22
 
 ## Result
-- Cycles run: 3
-- Starting score: 0.964 (hard: 0.967, soft: 0.958)
+- Cycles run: 0
+- Starting score: 1.000 (hard: 1.000, soft: 1.000)
 - Ending score: 1.000 (hard: 1.000, soft: 1.000)
-- Improvement: +3.6%
+- Improvement: +0.0%
 
 ## Changes That Held
 | Cycle | Assertion | Hypothesis | Commit |
 |-------|-----------|------------|--------|
-| 1 | S1_specific_next_step | Replacing the survey question "What are you building next?" in the Fresh session example with a step-naming nudge teaches the agent that even with nothing active, it should name a concrete next step rather than ask the user to choose | 441d5d8 |
-| 2 | no_corporate_phrases | Adding an explicit concern-response counter-example showing "makes sense" vs the Gandalf register equivalent ("Rewrites rarely solve the problem that prompted them...") prevents the no_corporate_phrases failure on concern scenarios | 1cb228c |
-| 3 | S1_specific_next_step | Adding an example for vague/ambiguous requests ("I'd start with Legolas on the auth layer — that is where coupling tends to hide.") teaches the agent to name a starting point rather than ask back when the request lacks specificity | 4dfee12 |
+| — | — | No cycles run — baseline held at ceiling | — |
 
 ## Changes Discarded
-None — all three proposed changes improved the score.
+| Cycle | Assertion | Hypothesis | Reason |
+|-------|-----------|------------|--------|
+| — | — | — | — |
+
+## Holdout Validation
+Holdout validation skipped — `holdout.py` has a known stdin pipe bug (runs `hard.py` without piping the response, so all scenarios return empty-string results). This is an infrastructure gap, not a signal about agent quality.
+
+**Infrastructure gap noted:** `evals/gandalf/holdout.py` needs to pipe `/tmp/fellowship_eval_response.txt` into the hard assertion runner. Until fixed, holdout scores cannot be trusted.
+
+## Assertion Health
+
+| Assertion | Type | This Session | Prior Sessions |
+|-----------|------|-------------|----------------|
+| no_survey_question | hard | PASS | PASS (1 session) — holding |
+| no_preamble_announcement | hard | PASS | PASS (1 session) — holding |
+| no_corporate_phrases | hard | PASS | PASS (1 session) — holding |
+| response_is_brief | hard | PASS | PASS (1 session) — holding |
+| no_trailing_summary | hard | PASS | PASS (1 session) — holding |
+| no_dispatch_on_tier1 | hard | PASS | PASS (1 session) — holding |
+| plan_before_dispatch_on_tier3 | hard | PASS | PASS (1 session) — holding |
+| pushes_back_on_deleting_tests | hard | PASS | PASS (1 session) — holding |
+| no_permission_seeking_before_dispatch | hard | PASS | PASS (1 session) — holding |
+| no_quest_log_permission_seeking | hard | PASS | PASS (1 session) — holding |
+| S1_specific_next_step | soft | PASS | PASS (1 session) — holding |
+| S2_elevated_register | soft | PASS | PASS (1 session) — holding |
+| S3_response_brevity | soft | PASS | PASS (1 session) — holding |
+| S4_names_specific_step | soft | PASS | PASS (1 session) — holding |
+| S5_product_context_persistence | soft | PASS | PASS (1 session) — holding |
+| S6_challenges_config_in_db | soft | PASS | PASS (1 session) — holding |
 
 ## Holdout Validation
 **Unable to complete** — holdout validation encountered infrastructure limitations. The `claude` CLI cannot parse agent files with YAML frontmatter when invoked with `--print`, resulting in parse errors and empty responses. This is a limitation of the current evaluation subprocess pattern, not the agent behavior itself.
@@ -51,13 +77,8 @@ All assertions passing on training set:
 | S6_challenges_config_in_db | soft | PASS | (first session) |
 
 ## Notes
+Session purpose was regression validation after the 720→555 line compression of `agents/gandalf.md`. All 16 assertions passed at baseline; no improvement cycles were needed or run.
 
-**The instructions were teaching the wrong pattern.** The most significant finding was Cycle 1: the "Opening a Session" section contained a bad example (`"What are you building next?"`) that directly contradicted the surrounding instruction ("The nudge is specific"). The model was following the example rather than the rule — a classic spec contradiction. Fixing the example fixed the behavior.
+**Borderline pattern observed:** Terse Tier 1 responses (scenarios ga003, ga004, ga013, ga015, ga025) lack explicit register anchors (elevated vocabulary words) but are correct behavior — brevity is right for that tier. Under a stricter soft judge these would score approximately 0.947 soft and 0.984 overall. The current soft assertions correctly accept brevity as valid for Tier 1. No action needed, but worth tracking if soft assertion S2 (`S2_elevated_register`) is tightened in future sessions.
 
-**Concern responses are a corporate-phrase trap.** "Makes sense" slips in naturally when acknowledging a user's idea before challenging it. The fix isn't adding "makes sense" to a banned list (already there) — it's showing the alternative in context: start with the reframe, not the agreement.
-
-**Vague requests need a default direction.** When a user says "clean up the codebase," the agent's previous instructions said to ask what they wanted to focus on. The correct behavior is to name a sensible starting point. Adding a single concrete example closed this gap completely.
-
-**Hard score hit 1.0 by Cycle 2.** Cycles 1–2 fixed the hard assertion failures. Cycle 3 pushed the soft score to 1.0. The agent was already well-instructed; the failures were in specific examples that modeled the wrong behavior, not in the principles themselves.
-
-**Stop conditions:** Both triggered simultaneously after Cycle 3 — overall ≥ 0.85 (reached 1.0) and no failing assertions remain.
+**Compression validation result:** The 2026-03-28 session reached 1.000 after 3 improvement cycles. This session confirms that ceiling holds after compression. No regressions detected.
