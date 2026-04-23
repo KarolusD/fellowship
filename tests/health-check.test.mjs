@@ -8,7 +8,7 @@
  * fixture root. We then run it with `node` and inspect stdout + exit code.
  */
 
-import { describe, it, before, after } from 'node:test';
+import { describe, it, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -299,32 +299,7 @@ describe('health-check — skill directory failures', () => {
 });
 
 describe('health-check — cross-reference / orphan skill detection', () => {
-  it('fails when a skill directory exists but no agent references it', async () => {
-    const root = createFixture({
-      agents: {
-        'alpha.md': [
-          '---',
-          'name: alpha',
-          'skills:',
-          '  - core',
-          '---',
-          '# Alpha',
-        ].join('\n'),
-      },
-      skills: {
-        core: true,
-        orphaned: true, // no agent references this
-      },
-    });
-    try {
-      const { exitCode, stdout } = await runHealthCheck(root);
-      assert.equal(exitCode, 1);
-      assert.match(stdout, /orphan skill/i);
-      assert.match(stdout, /orphaned/);
-    } finally {
-      cleanup(root);
-    }
-  });
+  test('fails when a skill directory exists but no agent references it', { skip: 'orphan detection removed — see health-check.mjs:261' }, () => {});
 });
 
 describe('health-check — edge cases', () => {

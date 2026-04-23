@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 // Fellowship statusLine hook
-// Fires after every tool use. Receives context window data, writes bridge file
-// for the context-monitor PostToolUse hook, and outputs a status line for the
-// user's status bar.
-
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+// Fires after every tool use. Reads context window data from stdin and outputs
+// a status line for the user's status bar.
+//
+// Data flow note: this hook is purely for display. The context-monitor
+// PostToolUse hook reads context_window.remaining_percentage directly from
+// its own stdin input — no shared file, no IPC between the two hooks.
 
 let input = '';
 // Timeout guard: if stdin doesn't close within 10s (e.g. pipe issues on
@@ -20,28 +19,11 @@ process.stdin.on('end', () => {
   clearTimeout(stdinTimeout);
   try {
     const data = JSON.parse(input);
-    const sessionId = data.session_id;
     const remaining = data.context_window?.remaining_percentage;
 
     // No context data available — exit silently
     if (remaining == null) {
       process.exit(0);
-    }
-
-    // Write bridge file for fellowship-context-monitor PostToolUse hook
-    if (sessionId) {
-      try {
-        const bridgePath = path.join(os.tmpdir(), `claude-ctx-${sessionId}.json`);
-        const used = Math.round(100 - remaining);
-        fs.writeFileSync(bridgePath, JSON.stringify({
-          session_id: sessionId,
-          remaining_percentage: remaining,
-          used_pct: used,
-          timestamp: Math.floor(Date.now() / 1000)
-        }));
-      } catch (e) {
-        // Silent fail — bridge is best-effort, don't break statusline
-      }
     }
 
     // Output status line with color indicator

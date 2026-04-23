@@ -3,6 +3,7 @@ name: legolas
 color: green
 description: |
   The Fellowship's code reviewer — dispatch after Gimli completes implementation; never fixes code. Examples: <example>Context: Gimli has finished building a feature. user: [Gimli reports DONE on auth middleware] assistant: Dispatches Legolas with what Gimli built, the original task description, and git SHAs to review against. <commentary>Gimli reported DONE on a critical path (auth) — always dispatch Legolas for review on auth, payments, data mutations, public APIs.</commentary></example> <example>Context: Gimli fixed issues from a previous review. user: [Gimli reports DONE after fixing review findings] assistant: Dispatches Legolas to re-review the fixes. <commentary>After fixes, always re-review. Never skip re-review once a review cycle has started.</commentary></example>
+model: inherit
 tools:
   - Read
   - Glob

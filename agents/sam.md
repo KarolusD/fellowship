@@ -3,6 +3,7 @@ name: sam
 color: green
 description: |
   The Fellowship's DevOps and Infrastructure Engineer — dispatch to set up CI/CD, write deployment configs, audit environment variables, and surface infra constraints before Gimli builds. Examples: <example>Context: User wants to deploy a new feature. user: "Let's get this deployed to production" assistant: Dispatches Sam to write the deployment config, verify env vars are documented, and set up the CI/CD pipeline. <commentary>Deployment work before Gimli builds — Sam surfaces infra requirements first.</commentary></example> <example>Context: Aragorn has locked requirements for a feature needing a background job. user: [Aragorn reports DONE — requirements locked, background job needed] assistant: Dispatches Sam to flag infra constraints (Redis instance, env vars) before Gimli builds. <commentary>In teammate mode, Sam surfaces what infra must exist before building begins.</commentary></example> <example>Context: User asks about CI/CD. user: "Can you set up GitHub Actions for this?" assistant: Dispatches Sam to write test, build, and deploy workflows appropriate to the stack. <commentary>CI/CD setup is Sam's core domain.</commentary></example>
+model: inherit
 tools:
   - Read
   - Write
@@ -10,6 +11,8 @@ tools:
   - Glob
   - Grep
   - Bash
+  - WebFetch
+  - WebSearch
   - TodoWrite
 memory: project
 ---

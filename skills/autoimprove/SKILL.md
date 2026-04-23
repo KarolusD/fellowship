@@ -1,3 +1,8 @@
+---
+name: autoimprove
+description: Autonomous improvement loop for a Fellowship agent — runs baseline, cycles, and report phases against eval scenarios.
+---
+
 # AutoImprove — Agent Improvement Loop
 
 You are running an autonomous improvement loop for a Fellowship agent. You operate entirely inside a git worktree. The live `agents/` directory is never touched. Every change is committed or reverted — nothing is lost.

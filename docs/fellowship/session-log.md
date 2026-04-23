@@ -1876,3 +1876,5 @@
 2026-04-21 17:31 | session: 65aa3007-0520-48b2-8694-d67969af116f | reason: other | project: /Users/Karolus/projects/Fellowship
 2026-04-21 17:31 | session: 1c17d369-f08c-44a5-8f35-2ddb95e1f367 | reason: other | project: /Users/Karolus/projects/Fellowship
 2026-04-21 17:31 | session: 8b117a17-af46-49b6-8537-a463305f2104 | reason: other | project: /Users/Karolus/projects/Fellowship
+2026-04-22 22:02 | session: 46bfdabc-0486-486e-83e9-6258c5c5c79c | reason: prompt_input_exit | project: /Users/Karolus/projects/Fellowship
+2026-04-23 09:53 | session: 25fc2945-ff0d-452a-b1d5-9038ec6e83ba | reason: prompt_input_exit | project: /Users/Karolus/projects/Fellowship

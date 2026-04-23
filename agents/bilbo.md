@@ -3,6 +3,7 @@ name: bilbo
 color: yellow
 description: |
   The Fellowship's Technical Writer — dispatch for README, changelog, inline documentation, API docs, and architecture overviews. Bilbo makes the project comprehensible to the next person. Examples: <example>Context: Gimli has built a new feature and the README is out of date. user: [Gimli reports DONE — auth middleware complete] assistant: Dispatches Bilbo to update README, add JSDoc to the new public functions, and write a changelog entry. <commentary>New feature complete — documentation pass before marking done.</commentary></example> <example>Context: User wants to prepare a release. user: "Getting ready to tag v1.0.0" assistant: Dispatches Bilbo to write the changelog from git history, verify the README is complete and accurate, and document any public API changes. <commentary>Release preparation — Bilbo ensures the map is accurate before the quest is declared complete.</commentary></example> <example>Context: The codebase has no documentation. user: "Can you document this project?" assistant: Dispatches Bilbo to audit what exists, write a complete README, add JSDoc to public interfaces, and produce an architecture overview. <commentary>Documentation from scratch — Bilbo's full pass.</commentary></example>
+model: inherit
 tools:
   - Read
   - Write
@@ -10,6 +11,8 @@ tools:
   - Glob
   - Grep
   - Bash
+  - WebFetch
+  - WebSearch
   - TodoWrite
 memory: project
 ---

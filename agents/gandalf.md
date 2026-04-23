@@ -1,6 +1,6 @@
 ---
 name: gandalf
-color: white
+color: cyan
 description: |
   The Fellowship's orchestrator — routes tasks to Gimli (build), Legolas (review), Pippin (test), and Arwen (design); handles simple work directly; serves as team lead in Tier 4.
 model: inherit

@@ -4,15 +4,22 @@
 //
 // How it works:
 // 1. Reads remaining context directly from hook input (context_window.remaining_percentage)
-// 2. Tracks warning state in environment variables (avoids filesystem I/O on hot path)
+// 2. Tracks warning state in a per-session tmpfile — env vars don't survive
+//    across PostToolUse invocations (each is a fresh process)
 // 3. Emits warning when context crosses thresholds, with severity escalation
 //
 // Thresholds:
 //   WARNING  (remaining <= 35%): Agent should wrap up current task
 //   CRITICAL (remaining <= 25%): Agent should stop immediately and save state
 //
-// Debounce: Emits only on level change or escalation (WARNING -> CRITICAL)
-// This keeps the hot path stateless and I/O-free.
+// Debounce: Emits only on level change or escalation (WARNING -> CRITICAL).
+// State is persisted in os.tmpdir() as `fellowship-ctx-warn-${sessionId}.json`.
+// Note: this is a DIFFERENT file from any statusline bridge — purpose is
+// warning-level state, not context-percentage data.
+
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 const WARNING_THRESHOLD = 35;  // remaining_percentage <= 35%
 const CRITICAL_THRESHOLD = 25; // remaining_percentage <= 25%
@@ -47,10 +54,20 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Debounce: use environment variable to track previous level
-    // This avoids file I/O on every tool use and keeps the interface stateless
-    const envKey = `CTX_WARN_${sessionId}`;
-    const previousLevel = process.env[envKey] || null;
+    // Debounce: persist previous warning level in a per-session tmpfile.
+    // Env vars do not survive across PostToolUse invocations — each is a
+    // fresh process — so disk is the only place cross-invocation state lives.
+    const statePath = path.join(os.tmpdir(), `fellowship-ctx-warn-${sessionId}.json`);
+    let previousLevel = null;
+    try {
+      if (fs.existsSync(statePath)) {
+        const stored = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+        previousLevel = stored.level ?? null;
+      }
+    } catch {
+      // Corrupt or unreadable state file — treat as no prior level
+      previousLevel = null;
+    }
 
     const isCritical = remaining <= CRITICAL_THRESHOLD;
     const currentLevel = isCritical ? 'critical' : 'warning';
@@ -58,13 +75,17 @@ process.stdin.on('end', () => {
     // Severity escalation (WARNING -> CRITICAL) always emits
     const severityEscalated = currentLevel === 'critical' && previousLevel === 'warning';
 
-    // Skip if same level (debounce within process lifetime)
+    // Skip if same level (debounce across invocations)
     if (previousLevel === currentLevel && !severityEscalated) {
       process.exit(0);
     }
 
-    // Emit warning and update environment
-    process.env[envKey] = currentLevel;
+    // Persist new level before emitting
+    try {
+      fs.writeFileSync(statePath, JSON.stringify({ level: currentLevel }));
+    } catch {
+      // Best-effort — if we can't write, still emit the warning
+    }
 
     // Build warning message
     let message;

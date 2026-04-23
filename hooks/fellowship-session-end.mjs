@@ -76,7 +76,7 @@ if (existsSync(questLogPath)) {
       if (completedInCurrent > 0) {
         const noticePath = join(fellowshipDir, '.quest-log-reminder');
         const noticeLine = `${completedInCurrent} completed item(s) in Current not yet moved to Recently Completed. Consolidate next session.\n`;
-        writeFileSync(noticePath, noticeLine, 'utf8');
+        appendFileSync(noticePath, noticeLine, 'utf8');
       }
     }
   } catch {

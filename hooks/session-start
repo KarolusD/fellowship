@@ -52,14 +52,14 @@ fi
 
 # ── 3. product.md (real content check) ───────────────────────────────────────
 # "Real content" = any line that is not empty, not a markdown comment (<!--),
-# and not a section heading (##) followed by an empty line.
-# Strategy: strip blank lines, comment lines (<!-- ... -->), and heading lines (##),
+# and not a heading (# or ##) followed by an empty line.
+# Strategy: strip blank lines, comment lines (<!-- ... -->), and heading lines (# or ##),
 # then check if anything remains.
 PRODUCT="${FELLOWSHIP_DIR}/product.md"
 if [ -f "$PRODUCT" ]; then
     product_raw=$(cat "$PRODUCT" 2>/dev/null || echo "")
-    # Filter out: empty lines, lines starting with <!--, lines starting with ##
-    product_real=$(printf '%s\n' "$product_raw" | grep -v '^\s*$' | grep -v '^\s*<!--' | grep -v '^\s*##' || true)
+    # Filter out: empty lines, lines starting with <!--, lines starting with # (any heading level)
+    product_real=$(printf '%s\n' "$product_raw" | grep -v '^\s*$' | grep -v '^\s*<!--' | grep -v '^\s*#' || true)
     if [ -n "$product_real" ]; then
         product_escaped=$(escape_for_json "$product_raw")
         session_context="${session_context}\\n<PRODUCT_CONTEXT>\\n${product_escaped}\\n</PRODUCT_CONTEXT>"
@@ -84,7 +84,7 @@ fi
 HANDOFFS_DIR="${FELLOWSHIP_DIR}/handoffs"
 if [ -d "$HANDOFFS_DIR" ]; then
     recent_handoff=$(find "$HANDOFFS_DIR" -name "*.md" -mtime -7 -type f 2>/dev/null \
-        | sort -r | head -1)
+        | sort -r | head -1 || true)
     if [ -n "$recent_handoff" ]; then
         handoff_raw=$(cat "$recent_handoff" 2>/dev/null || echo "")
         if [ -n "$handoff_raw" ]; then

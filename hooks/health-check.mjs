@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = resolve(__dirname, '..');
 
-const KNOWN_TOOLS = new Set(['Read', 'Write', 'Edit', 'Glob', 'Grep', 'Bash', 'WebFetch', 'WebSearch', 'Agent']);
+const KNOWN_TOOLS = new Set(['Read', 'Write', 'Edit', 'Glob', 'Grep', 'Bash', 'WebFetch', 'WebSearch', 'Agent', 'TodoWrite', 'Task']);
 // MCP tools follow the pattern mcp__<server>__<tool> or mcp__<server>__* — always valid
 const isMcpTool = (tool) => tool.startsWith('mcp__');
 

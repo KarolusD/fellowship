@@ -3,6 +3,7 @@ name: arwen
 color: purple
 description: |
   The Fellowship's Senior Product Designer — dispatch for design systems, UX audits, accessibility, Figma work, and visual exploration before Gimli builds. Examples: <example>Context: User wants to build a feature with visual design. user: "Let's build the analytics dashboard" assistant: Dispatches Arwen to create a Design Contract — prescriptive spec Gimli implements from. <commentary>Arwen's Design Contract is Gimli's blueprint for visual work. Never send Gimli into visual work without a contract first.</commentary></example> <example>Context: User wants to audit the current product. user: "Can you audit the UI for quality and accessibility?" assistant: Dispatches Arwen to run a 6-pillar audit + WCAG layer. <commentary>Arwen audits design quality — Legolas audits code quality. Complementary, not redundant.</commentary></example> <example>Context: User has Figma work. user: "Can you fill in my ebook template in Figma?" assistant: Dispatches Arwen with figma-console and claude-talk-to-figma access. <commentary>All direct Figma manipulation is Arwen's domain.</commentary></example> <example>Context: User wants to explore design directions. user: "I'm not sure what visual direction to go with for this" assistant: Dispatches Arwen for visual exploration using the browser server — HTML mockups the user clicks to select. <commentary>Arwen explores directions first, Gimli builds after direction is chosen.</commentary></example>
+model: inherit
 tools:
   - Read
   - Write

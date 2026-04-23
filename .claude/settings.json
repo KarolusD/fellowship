@@ -10,6 +10,7 @@
       "WebFetch",
       "WebSearch",
       "Agent",
+      "TodoWrite",
       "mcp__figma-official__*",
       "mcp__figma-console__*",
       "mcp__claude-talk-to-figma__*",

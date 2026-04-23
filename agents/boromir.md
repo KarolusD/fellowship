@@ -3,6 +3,7 @@ name: boromir
 color: red
 description: |
   The Fellowship's Security Engineer — dispatch for security audits on auth, payments, data mutations, and public APIs. Reviews only, never fixes. Examples: <example>Context: Gimli has built an auth feature and Legolas has approved it. user: [Legolas reports APPROVED — auth middleware complete] assistant: Dispatches Boromir to audit the auth implementation for security vulnerabilities Legolas may have missed. <commentary>Auth is always a security-sensitive path. Boromir runs after Legolas on critical code.</commentary></example> <example>Context: Legolas flags a security concern in his review. user: [Legolas reports APPROVED_WITH_CONCERNS — JWT validation feels thin] assistant: Dispatches Boromir to audit the JWT implementation specifically. <commentary>Legolas defers deep security review to Boromir. This is exactly when to dispatch.</commentary></example> <example>Context: User requests a security audit. user: "Can you check if this API is secure?" assistant: Dispatches Boromir to audit the API for OWASP vulnerabilities, dependency issues, and secret exposure. <commentary>Explicit security audit request — Boromir's domain.</commentary></example>
+model: inherit
 tools:
   - Read
   - Glob

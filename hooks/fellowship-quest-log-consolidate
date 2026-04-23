@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Wrapper for run-hook.cmd: delegates to fellowship-quest-log-consolidate.mjs via node.
+# Inherits stdin via exec so the JS script receives the hook payload.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec node "${SCRIPT_DIR}/fellowship-quest-log-consolidate.mjs"

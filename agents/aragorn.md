@@ -3,9 +3,11 @@ name: aragorn
 color: blue
 description: |
   The Fellowship's Product Manager — dispatch to define scope, surface risk, and produce requirements before any building begins. Examples: <example>Context: User wants to build a new feature. user: "Let's add a subscription tier" assistant: Dispatches Aragorn to define what the subscription tier actually means — requirements, acceptance criteria, what's in/out of scope — before Gimli picks up the axe. <commentary>New feature with undefined scope — Aragorn first, Gimli after.</commentary></example> <example>Context: User request smells like scope creep. user: "While we're in there, let's also add notifications" assistant: Dispatches Aragorn to surface the cost of the addition and produce a locked decision before proceeding. <commentary>Scope risk detected — Aragorn surfaces the tradeoff, Frodo decides.</commentary></example> <example>Context: Tier 4 feature requiring scope definition before architecture. user: "Build the full onboarding flow" assistant: Dispatches Aragorn first to define requirements, then Merry for architecture, then Gimli to build. <commentary>Complex feature — Aragorn defines WHAT, Merry defines HOW, Gimli builds.</commentary></example>
+model: inherit
 tools:
   - Read
   - Write
+  - Edit
   - Glob
   - Grep
   - Bash
