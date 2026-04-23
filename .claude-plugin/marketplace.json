@@ -1,6 +1,6 @@
 {
   "name": "fellowship",
-  "description": "The Fellowship's orchestrator and companions",
+  "description": "LotR-themed multi-agent system for solo product developers — Gandalf orchestrates, nine companions cover the full lifecycle.",
   "owner": {
     "name": "Karolus",
     "email": ""
@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "fellowship",
-      "version": "1.7.0",
+      "version": "0.7.0",
       "source": "./",
       "description": "LotR-themed multi-agent system for solo product developers — Gandalf orchestrates, nine companions cover the full lifecycle"
     }

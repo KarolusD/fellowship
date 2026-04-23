@@ -67,11 +67,19 @@ function createFixture(opts = {}) {
   const pluginJson = opts.pluginJson ?? {
     name: 'test-plugin',
     description: 'A test plugin',
-    version: '0.0.1',
   };
   writeFileSync(
     join(root, '.claude-plugin', 'plugin.json'),
     typeof pluginJson === 'string' ? pluginJson : JSON.stringify(pluginJson),
+  );
+
+  // .claude-plugin/marketplace.json — version lives here for relative-path plugins
+  const marketplaceJson = opts.marketplaceJson ?? {
+    plugins: [{ name: 'test-plugin', version: '0.0.1' }],
+  };
+  writeFileSync(
+    join(root, '.claude-plugin', 'marketplace.json'),
+    typeof marketplaceJson === 'string' ? marketplaceJson : JSON.stringify(marketplaceJson),
   );
 
   // settings.json
@@ -198,9 +206,62 @@ describe('health-check — plugin.json failures', () => {
       const { exitCode, stdout } = await runHealthCheck(root);
       assert.equal(exitCode, 1);
       assert.match(stdout, /plugin\.json.*missing fields/i);
-      // Should mention both missing fields
+      // Should mention description (version is no longer required in plugin.json)
       assert.match(stdout, /description/);
-      assert.match(stdout, /version/);
+    } finally {
+      cleanup(root);
+    }
+  });
+
+  it('passes when plugin.json has name+description but no version (relative-path plugin)', async () => {
+    const root = createFixture({
+      pluginJson: { name: 'test-plugin', description: 'no version here' },
+    });
+    try {
+      const { exitCode, stdout } = await runHealthCheck(root);
+      assert.equal(exitCode, 0, `Expected exit 0, got ${exitCode}.\nOutput:\n${stdout}`);
+      assert.match(stdout, /plugin\.json — valid/);
+    } finally {
+      cleanup(root);
+    }
+  });
+});
+
+describe('health-check — marketplace.json version assertion', () => {
+  it('fails when marketplace.json has malformed (non-semver) version', async () => {
+    const root = createFixture({
+      marketplaceJson: { plugins: [{ name: 'test-plugin', version: 'not-a-version' }] },
+    });
+    try {
+      const { exitCode, stdout } = await runHealthCheck(root);
+      assert.equal(exitCode, 1);
+      assert.match(stdout, /marketplace\.json.*not valid semver/i);
+    } finally {
+      cleanup(root);
+    }
+  });
+
+  it('fails when marketplace.json is missing plugins[0].version', async () => {
+    const root = createFixture({
+      marketplaceJson: { plugins: [{ name: 'test-plugin' }] },
+    });
+    try {
+      const { exitCode, stdout } = await runHealthCheck(root);
+      assert.equal(exitCode, 1);
+      assert.match(stdout, /marketplace\.json.*version missing/i);
+    } finally {
+      cleanup(root);
+    }
+  });
+
+  it('fails when marketplace.json has empty plugins array', async () => {
+    const root = createFixture({
+      marketplaceJson: { plugins: [] },
+    });
+    try {
+      const { exitCode, stdout } = await runHealthCheck(root);
+      assert.equal(exitCode, 1);
+      assert.match(stdout, /marketplace\.json.*plugins/i);
     } finally {
       cleanup(root);
     }

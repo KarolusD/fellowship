@@ -117,6 +117,14 @@ Claude Code uses a two-step install: add the Fellowship as a plugin source, then
 
 Every session starts with Gandalf guiding the quest.
 
+#### On First Run
+
+Once installed, open Claude Code inside any project directory. Gandalf greets you in voice and reads the state of the repo before anything else.
+
+On a fresh project with no `docs/fellowship/`, he bootstraps the structure and asks: *"What are we building, and who is it for?"* — the quest begins there.
+
+On an existing project, he picks up the thread from the quest log and tells you where things stood when the last session ended.
+
 **Other ways to use the Fellowship:**
 
 **One-off session** — start Gandalf explicitly for a single session:
@@ -305,6 +313,8 @@ The Fellowship is inspired by [Superpowers](https://github.com/obra/superpowers)
 ## Status
 
 Usable. All ten companions are built. The thing to validate now is real-project orchestration — finding the gaps that only appear when the stakes are real.
+
+Battle-tested on Fellowship's own development; actively seeking feedback from first real-project users.
 
 ## License
 

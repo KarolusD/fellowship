@@ -88,13 +88,41 @@ function checkPluginManifest() {
   const { data, error } = readJSON('.claude-plugin/plugin.json');
   if (error) { fail(`plugin.json \u2014 ${error}`); return; }
 
-  const required = ['name', 'description', 'version'];
+  const required = ['name', 'description'];
   const missing = required.filter(f => !data[f]);
   if (missing.length) {
     fail(`plugin.json \u2014 missing fields: ${missing.join(', ')}`);
   } else {
     pass('plugin.json \u2014 valid, all required fields present');
   }
+}
+
+// ---------------------------------------------------------------------------
+// 1b. Marketplace manifest \u2014 version lives here for relative-path plugins
+// ---------------------------------------------------------------------------
+
+function checkMarketplaceManifest() {
+  const { data, error } = readJSON('.claude-plugin/marketplace.json');
+  if (error) { fail(`marketplace.json \u2014 ${error}`); return; }
+
+  const plugins = data.plugins;
+  if (!Array.isArray(plugins) || plugins.length === 0) {
+    fail('marketplace.json \u2014 missing or empty "plugins" array');
+    return;
+  }
+
+  const version = plugins[0].version;
+  if (!version) {
+    fail('marketplace.json \u2014 plugins[0].version missing');
+    return;
+  }
+
+  if (!/^\d+\.\d+\.\d+/.test(version)) {
+    fail(`marketplace.json \u2014 plugins[0].version "${version}" is not valid semver`);
+    return;
+  }
+
+  pass(`marketplace.json \u2014 plugins[0].version "${version}" is valid semver`);
 }
 
 // ---------------------------------------------------------------------------
@@ -271,6 +299,7 @@ console.log('Fellowship Health Check');
 console.log('=======================');
 
 checkPluginManifest();
+checkMarketplaceManifest();
 checkSettings();
 checkHooks();
 checkAgents();
