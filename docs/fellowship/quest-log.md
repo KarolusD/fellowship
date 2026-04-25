@@ -1,9 +1,10 @@
 # Quest Log
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-25
 
 ## Current
 
+- [ ] Adopt three skills from Matt Pocock's repo — `grill-me` standalone, `design-it-twice` for Merry (renamed from `design-an-interface`), TDD principles surgically folded into Pippin Mode 2 — plan at `plans/2026-04-25-mattpocock-skills-adoption.md`
 - [ ] Use Fellowship on a real project — validate orchestration, find gaps
 - [ ] Eval coverage for Boromir/Merry/Aragorn/Arwen/Sam/Bilbo (deferred from cleanup pass — separate quest)
 
