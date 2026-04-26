@@ -36,3 +36,7 @@ Full history of completed work. Not loaded at session start — read only on req
 
 - [2026-04-22] P1 + P3 shipped — TodoWrite visibility, docs/fellowship structure rule with README, specs/plans/design separation, 6 specs archived (v1.3.0)
 - [2026-04-22] Aragorn PRD — Fellowship real-usage improvements scoped, 6 problems prioritized
+
+## Archived 2026-04-26
+
+- [2026-04-22] P2 shipped — Legolas structural review (Merry ADR → Gimli implementation; prefilter + responsibility test + duplication grep + map + Structural: section + anti-paralysis carve-out)
