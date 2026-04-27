@@ -35,6 +35,14 @@ try {
 
 const { session_id = 'unknown', reason = 'unknown', cwd = process.cwd() } = input;
 
+// Strip CR/LF from log-line fields to prevent log injection (CWE-117).
+// session_id, reason, and cwd are attacker-influenceable surfaces in the
+// hook input; a newline in any of them would forge a fake log entry.
+const safe = (v) => String(v).replace(/[\r\n]/g, '');
+const safeSessionId = safe(session_id);
+const safeReason = safe(reason);
+const safeCwd = safe(cwd);
+
 const fellowshipDir = join(cwd, 'docs', 'fellowship');
 
 // If docs/fellowship/ doesn't exist, this project isn't using Fellowship memory — do nothing
@@ -50,7 +58,7 @@ const now = new Date();
 const pad = (n) => String(n).padStart(2, '0');
 const datePart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 const timePart = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-const logLine = `${datePart} ${timePart} | session: ${session_id} | reason: ${reason} | project: ${cwd}\n`;
+const logLine = `${datePart} ${timePart} | session: ${safeSessionId} | reason: ${safeReason} | project: ${safeCwd}\n`;
 
 try {
   if (!existsSync(logPath)) {

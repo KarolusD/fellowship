@@ -1,6 +1,6 @@
 # Companions
 
-Each companion is both a **skill** (loadable in session) and an **agent** (dispatched for independent work).
+Each companion is an **agent** file (`agents/<name>.md`) with a thin `/fellowship:<name>` slash-command pointer in `commands/`. Loading the slash command surfaces the agent's craft — character, methodology, report format — into the current session without a dispatch; dispatching the agent runs the same craft in an isolated subagent context. Only Gandalf is the orchestrator skill (`skills/using-fellowship/`); the other nine companions are not dual skill+agent — the slash command is a convenience pointer, not a separate skill definition.
 
 | Companion | Role | Skill (in session) | Agent (dispatched) |
 |---|---|---|---|

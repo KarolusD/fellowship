@@ -1,6 +1,8 @@
 ---
 name: investigate
 description: "Use when diagnosing a bug, test failure, deploy issue, or any unexpected behavior. Systematic root-cause methodology: investigate → hypothesize → fix → verify. No fix without root cause. Load before proposing any fix."
+user-invocable: true
+trigger: /fellowship:investigate
 ---
 
 # Investigate

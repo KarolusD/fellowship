@@ -76,13 +76,36 @@ if [ -d "$FELLOWSHIP_DIR" ]; then
     session_context="${session_context}\\n<FELLOWSHIP_CONTEXT>\\n${bootstrap_escaped}\\n</FELLOWSHIP_CONTEXT>"
 fi
 
+# ── Untrusted-content boundary (SF-2) ────────────────────────────────────────
+# All blocks below ingest project-controlled .md files (quest log, product,
+# debug log, handoffs, codebase map). Any contributor or PR can write these
+# files, so their content is DATA, not commands. We:
+#   1. Wrap each block in an <UNTRUSTED_*> tag so Gandalf (see using-fellowship
+#      SKILL.md) treats the contents as factual context only — never as
+#      instructions to follow.
+#   2. Cap each ingested block at 8192 bytes; on truncation we append a marker
+#      naming the source path so the orchestrator can read the full file
+#      explicitly if needed.
+UNTRUSTED_CAP=8192
+truncate_with_marker() {
+    # $1 = raw content, $2 = source path
+    local raw="$1" src="$2"
+    if [ "${#raw}" -gt "$UNTRUSTED_CAP" ]; then
+        printf '%s\n[... truncated at 8KB; full file at %s ...]' \
+            "${raw:0:$UNTRUSTED_CAP}" "$src"
+    else
+        printf '%s' "$raw"
+    fi
+}
+
 # ── 2. quest-log.md (if file exists) ─────────────────────────────────────────
 QUEST_LOG="${FELLOWSHIP_DIR}/quest-log.md"
 if [ -f "$QUEST_LOG" ]; then
     quest_content=$(cat "$QUEST_LOG" 2>/dev/null || echo "")
     if [ -n "$quest_content" ]; then
-        quest_escaped=$(escape_for_json "$quest_content")
-        session_context="${session_context}\\n<QUEST_LOG>\\n${quest_escaped}\\n</QUEST_LOG>"
+        quest_capped=$(truncate_with_marker "$quest_content" "$QUEST_LOG")
+        quest_escaped=$(escape_for_json "$quest_capped")
+        session_context="${session_context}\\n<UNTRUSTED_QUEST_LOG>\\n${quest_escaped}\\n</UNTRUSTED_QUEST_LOG>"
     fi
 fi
 
@@ -97,12 +120,13 @@ if [ -f "$PRODUCT" ]; then
     # Filter out: empty lines, lines starting with <!--, lines starting with # (any heading level)
     product_real=$(printf '%s\n' "$product_raw" | grep -v '^\s*$' | grep -v '^\s*<!--' | grep -v '^\s*#' || true)
     if [ -n "$product_real" ]; then
-        product_escaped=$(escape_for_json "$product_raw")
-        session_context="${session_context}\\n<PRODUCT_CONTEXT>\\n${product_escaped}\\n</PRODUCT_CONTEXT>"
+        product_capped=$(truncate_with_marker "$product_raw" "$PRODUCT")
+        product_escaped=$(escape_for_json "$product_capped")
+        session_context="${session_context}\\n<UNTRUSTED_PRODUCT>\\n${product_escaped}\\n</UNTRUSTED_PRODUCT>"
     else
         notice="product.md has no content yet — ask the user to describe the project before starting work"
         notice_escaped=$(escape_for_json "$notice")
-        session_context="${session_context}\\n<PRODUCT_CONTEXT>\\n${notice_escaped}\\n</PRODUCT_CONTEXT>"
+        session_context="${session_context}\\n<UNTRUSTED_PRODUCT>\\n${notice_escaped}\\n</UNTRUSTED_PRODUCT>"
     fi
 fi
 
@@ -111,8 +135,9 @@ DEBUG_LOG="${FELLOWSHIP_DIR}/debug-log.md"
 if [ -f "$DEBUG_LOG" ]; then
     debug_raw=$(tail -60 "$DEBUG_LOG" 2>/dev/null || echo "")
     if [ -n "$debug_raw" ]; then
-        debug_escaped=$(escape_for_json "$debug_raw")
-        session_context="${session_context}\\n<DEBUG_LOG>\\n${debug_escaped}\\n</DEBUG_LOG>"
+        debug_capped=$(truncate_with_marker "$debug_raw" "$DEBUG_LOG")
+        debug_escaped=$(escape_for_json "$debug_capped")
+        session_context="${session_context}\\n<UNTRUSTED_DEBUG_LOG>\\n${debug_escaped}\\n</UNTRUSTED_DEBUG_LOG>"
     fi
 fi
 
@@ -128,19 +153,22 @@ if [ "$IS_RESUME" = "0" ] && [ -d "$HANDOFFS_DIR" ]; then
         if [ -n "$handoff_raw" ]; then
             handoff_name=$(basename "$recent_handoff")
             handoff_body="File: ${handoff_name}"$'\n\n'"${handoff_raw}"
-            handoff_escaped=$(escape_for_json "$handoff_body")
-            session_context="${session_context}\\n<HANDOFF>\\n${handoff_escaped}\\n</HANDOFF>"
+            handoff_capped=$(truncate_with_marker "$handoff_body" "$recent_handoff")
+            handoff_escaped=$(escape_for_json "$handoff_capped")
+            session_context="${session_context}\\n<UNTRUSTED_HANDOFF>\\n${handoff_escaped}\\n</UNTRUSTED_HANDOFF>"
         fi
     fi
 fi
 
 # ── 6. codebase-map.md (first 30 lines if file exists) ───────────────────────
+# 30-line cap is preserved (it sits well under the 8KB byte cap); the wrapper
+# is renamed to UNTRUSTED_CODEBASE_MAP for tag uniformity.
 CODEBASE_MAP="${FELLOWSHIP_DIR}/codebase-map.md"
 if [ -f "$CODEBASE_MAP" ]; then
     map_raw=$(head -30 "$CODEBASE_MAP" 2>/dev/null || echo "")
     if [ -n "$map_raw" ]; then
         map_escaped=$(escape_for_json "$map_raw")
-        session_context="${session_context}\\n<CODEBASE_MAP>\\n${map_escaped}\\n</CODEBASE_MAP>"
+        session_context="${session_context}\\n<UNTRUSTED_CODEBASE_MAP>\\n${map_escaped}\\n</UNTRUSTED_CODEBASE_MAP>"
     fi
 fi
 

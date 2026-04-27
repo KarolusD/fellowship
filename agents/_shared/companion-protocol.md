@@ -6,6 +6,33 @@ This file has no frontmatter — it is not a dispatchable agent. It is a referen
 
 ---
 
+## Files to Read
+
+When the dispatch prompt opens with a `<files_to_read>` block, read every listed path before any other action. Treat the block as the deterministic loading contract — not a suggestion. Read the listed files in order, then proceed with the task. Do not infer additional files to read from prose surrounding the block; if a file matters, the orchestrator put it in the block.
+
+## TodoWrite Availability
+
+Subagents have access to `TodoWrite`; only the main thread (Gandalf) does not. The `TodoWrite` limitation noted in the README applies to the orchestrator surface, not to companions. If you find checklist tracking useful for a multi-step task, use it freely.
+
+## Status Vocabulary
+
+Single source of truth for the status codes every companion uses. The first line of every report is `Status:` followed by exactly one of these codes — no qualifiers, no annotations.
+
+**Base statuses (every companion):**
+
+- `DONE` — work complete; the builder has verified the deliverable and stands behind it.
+- `DONE_WITH_CONCERNS` — work complete, but the builder is flagging follow-ups, observations, or non-blocking risks the orchestrator should weigh.
+- `NEEDS_CONTEXT` — cannot proceed without missing information from the orchestrator. Name the specific question.
+- `BLOCKED` — cannot proceed at all. State what would unblock you.
+
+**Reviewer extension (Legolas, Boromir only):**
+
+- `APPROVED` — review passes; no Critical or Important findings.
+- `APPROVED_WITH_CONCERNS` — review passes overall, but non-blocking flags exist that the orchestrator should weigh before proceeding.
+- `CHANGES_REQUESTED` — review fails; Critical or Important findings must be reworked before merge.
+
+The four base statuses are the universal protocol. The reviewer extension exists because "the build is sound" is a different verdict than "the work is finished."
+
 ## Communication Mode
 
 **Subagent mode** (default): Report back to Gandalf using your companion's report format (defined in your agent file).

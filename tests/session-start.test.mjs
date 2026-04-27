@@ -199,11 +199,11 @@ describe('session-start — cold-install path (no docs/fellowship)', () => {
     assert.match(ctx, /\/fellowship:start|set up Fellowship/);
   });
 
-  it('does NOT include QUEST_LOG, PRODUCT_CONTEXT, or FELLOWSHIP_CONTEXT', async () => {
+  it('does NOT include UNTRUSTED_QUEST_LOG, UNTRUSTED_PRODUCT, or FELLOWSHIP_CONTEXT', async () => {
     const { parsed } = await runHook(fx.scriptPath, fx.projectDir);
     const ctx = extractContext(parsed);
-    assert.doesNotMatch(ctx, /<QUEST_LOG>/);
-    assert.doesNotMatch(ctx, /<PRODUCT_CONTEXT>/);
+    assert.doesNotMatch(ctx, /<UNTRUSTED_QUEST_LOG>/);
+    assert.doesNotMatch(ctx, /<UNTRUSTED_PRODUCT>/);
     assert.doesNotMatch(ctx, /<FELLOWSHIP_CONTEXT>/);
   });
 });
@@ -244,38 +244,38 @@ describe('session-start — full Fellowship path', () => {
   });
   after(() => cleanup(fx.root));
 
-  it('injects QUEST_LOG block', async () => {
+  it('injects UNTRUSTED_QUEST_LOG block', async () => {
     const { parsed } = await runHook(fx.scriptPath, fx.projectDir);
     const ctx = extractContext(parsed);
-    assert.match(ctx, /<QUEST_LOG>/);
+    assert.match(ctx, /<UNTRUSTED_QUEST_LOG>/);
     assert.match(ctx, /auth middleware/);
   });
 
-  it('injects PRODUCT_CONTEXT block with real content', async () => {
+  it('injects UNTRUSTED_PRODUCT block with real content', async () => {
     const { parsed } = await runHook(fx.scriptPath, fx.projectDir);
     const ctx = extractContext(parsed);
-    assert.match(ctx, /<PRODUCT_CONTEXT>/);
+    assert.match(ctx, /<UNTRUSTED_PRODUCT>/);
     assert.match(ctx, /orchestrated dev work/);
   });
 
-  it('injects DEBUG_LOG block', async () => {
+  it('injects UNTRUSTED_DEBUG_LOG block', async () => {
     const { parsed } = await runHook(fx.scriptPath, fx.projectDir);
     const ctx = extractContext(parsed);
-    assert.match(ctx, /<DEBUG_LOG>/);
+    assert.match(ctx, /<UNTRUSTED_DEBUG_LOG>/);
     assert.match(ctx, /heredoc hang/);
   });
 
-  it('injects HANDOFF block when a recent handoff exists', async () => {
+  it('injects UNTRUSTED_HANDOFF block when a recent handoff exists', async () => {
     const { parsed } = await runHook(fx.scriptPath, fx.projectDir);
     const ctx = extractContext(parsed);
-    assert.match(ctx, /<HANDOFF>/);
+    assert.match(ctx, /<UNTRUSTED_HANDOFF>/);
     assert.match(ctx, /TodoWrite wiring/);
   });
 
-  it('injects CODEBASE_MAP block', async () => {
+  it('injects UNTRUSTED_CODEBASE_MAP block', async () => {
     const { parsed } = await runHook(fx.scriptPath, fx.projectDir);
     const ctx = extractContext(parsed);
-    assert.match(ctx, /<CODEBASE_MAP>/);
+    assert.match(ctx, /<UNTRUSTED_CODEBASE_MAP>/);
     assert.match(ctx, /companion definitions/);
   });
 });
@@ -290,7 +290,7 @@ describe('session-start — empty product.md path', () => {
     try {
       const { parsed } = await runHook(fx.scriptPath, fx.projectDir);
       const ctx = extractContext(parsed);
-      assert.match(ctx, /<PRODUCT_CONTEXT>/);
+      assert.match(ctx, /<UNTRUSTED_PRODUCT>/);
       assert.match(ctx, /no content yet/i);
       assert.match(ctx, /describe the project/i);
     } finally {

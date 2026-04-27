@@ -20,7 +20,7 @@ prompt: |
   |----------|------------------|
   | Spec alignment | Plan covers all spec requirements. No major scope creep. Key decisions from brainstorming are reflected. |
   | Task decomposition | Tasks have clear boundaries. Each produces a testable result. Dependencies between tasks are correct. |
-  | Companion assignments | Right specialist for each task. No over-deployment (simple tasks don't need agents). |
+  | Companion assignments | Right companion for each task. No over-deployment (simple tasks don't need agents). |
   | Tier recommendation | Appropriate for the plan's complexity. Not over-engineered. |
   | Parallel vs sequential | Independent tasks marked parallel. Dependencies marked sequential. No missing dependencies. |
   | Verification commands | Each task has specific, runnable verification commands with expected output. |

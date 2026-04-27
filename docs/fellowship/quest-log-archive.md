@@ -45,3 +45,7 @@ Full history of completed work. Not loaded at session start — read only on req
 - [2026-04-22] Codebase cleanup v1.5.1 — Critical (TodoWrite in KNOWN_TOOLS) + 5 Important (SessionEnd shim, Gandalf color, model: inherit ×9, autoimprove frontmatter, stale test) + 1 Minor (pipefail guard); Lego...
 - [2026-04-22] Codebase map generated — `/fellowship:map`
 
+
+## Archived 2026-04-27
+
+- [2026-04-23] Agent tool allowlists corrected v1.7.0 — Sam round-3 research nailed the mechanism (`tools:` is strict allowlist; omit → inherit all; built-ins like TodoWrite governed same as everything else); fix...

@@ -2,6 +2,10 @@
 
 Headless overnight loop that improves Fellowship agent files using eval-driven iteration.
 
+## Warning — full-permission session
+
+`improve.sh` invokes `claude --dangerously-skip-permissions` against a worktree copy of this repository. The headless agent runs with every tool enabled and no confirmation prompts, against whatever files the worktree contains — including any secrets, credentials, or proprietary data sitting in untracked files. Do not run this on a repo containing anything you are not willing to expose to a fully-permissioned Claude session. Inspect your worktree state (`git status`, `find . -name '.env*'`) before starting an overnight run.
+
 ## How it works
 
 1. Spins up a git worktree on a fresh branch (`autoimprove/<agent>-YYYYMMDD-HHMM`)

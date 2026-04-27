@@ -273,6 +273,18 @@ function checkAgents() {
       continue;
     }
 
+    // Check `name:` field is the bare filename (no `fellowship:` prefix).
+    // Claude Code adds the plugin namespace at runtime \u2014 declaring it in the
+    // frontmatter causes double-prefixing (e.g. `fellowship:fellowship:merry`)
+    // in dispatched-agent labels. The invocation token is `fellowship:<name>`,
+    // but the declared name is bare.
+    const expectedName = file.replace(/\.md$/, '');
+    if (fm.name !== expectedName) {
+      fail(`agents/${file} \u2014 name "${fm.name || '(missing)'}" does not match expected "${expectedName}" (bare; no fellowship: prefix)`);
+    } else {
+      pass(`agents/${file} \u2014 name "${fm.name}" matches filename`);
+    }
+
     // Check skills resolve
     const skills = Array.isArray(fm.skills) ? fm.skills : fm.skills ? [fm.skills] : [];
     let skillsOk = true;

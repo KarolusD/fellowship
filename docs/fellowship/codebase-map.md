@@ -8,13 +8,13 @@
 
 ## Stack
 
-- **Plugin runtime:** Claude Code (manifest at `.claude-plugin/plugin.json`, version `0.9.0-dev` — pre-1.0)
+- **Plugin runtime:** Claude Code (manifest at `.claude-plugin/plugin.json`, version `1.0.0`)
 - **Marketplace registration:** `.claude-plugin/marketplace.json` (mirrors plugin version — bump both together)
 - **Agents/skills:** Markdown with YAML frontmatter — no compiler. Claude Code loads them directly.
 - **Hooks:** Bash shims (extensionless) under `hooks/` calling Node `.mjs` workers; `hooks/run-hook.cmd` is a polyglot wrapper for Windows compatibility.
 - **Eval runner:** Python 3 — `evals/_runner/run_eval.py` (judge-based) and `evals/_runner/improve.sh`.
 - **Tests:** Node `node:test` runner — files under `tests/*.test.mjs`. Run: `node --test tests/*.test.mjs`.
-- **Health check:** `node hooks/health-check.mjs` — must pass 27/0 after any structural change.
+- **Health check:** `node hooks/health-check.mjs` — must pass 36/0 after any structural change.
 - **Package manager:** none. No `package.json`, no `node_modules`. Uses system Node ≥20 (for `.mjs` test runner) and system Python 3.
 
 ## Architecture
@@ -64,7 +64,7 @@ There is no root-level `plugin.json` or `settings.json` (prior versions had them
 | `hooks/fellowship-context-monitor` + `.mjs` | Bash + Node | PostToolUse (async) | Triggers handoff when context budget is low |
 | `hooks/fellowship-session-end` + `.mjs` | Bash + Node | SessionEnd | Updates quest log, writes session summary |
 | `hooks/fellowship-quest-log-consolidate` + `.mjs` | Bash + Node | SessionStart + SessionEnd | Consolidates quest-log entries |
-| `hooks/health-check.mjs` | Node (manual) | run via `node hooks/health-check.mjs` | Plugin self-test — must pass 27/0 |
+| `hooks/health-check.mjs` | Node (manual) | run via `node hooks/health-check.mjs` | Plugin self-test — must pass 36/0 |
 
 ## Skill layer
 
@@ -88,7 +88,7 @@ There is no root-level `plugin.json` or `settings.json` (prior versions had them
 
 ## Agent layer
 
-9 companion agents at `agents/<name>.md`. Each declares `name: fellowship:<name>` in frontmatter and is dispatched with that subagent type. Gandalf is **not** a file under `agents/` — Gandalf's identity is the `using-fellowship` skill injected at SessionStart.
+9 companion agents at `agents/<name>.md`. Each declares a **bare** `name: <name>` in frontmatter (no `fellowship:` prefix — Claude Code adds the plugin namespace at runtime; declaring it twice produces `fellowship:fellowship:<name>` in dispatched-agent labels). Dispatched via `Agent({subagent_type: "fellowship:<name>", ...})`. Gandalf is **not** a file under `agents/` — Gandalf's identity is the `using-fellowship` skill injected at SessionStart.
 
 | Agent | Role | Tools (typical) |
 |---|---|---|
@@ -166,7 +166,7 @@ The health check itself is a runnable script: `node hooks/health-check.mjs` — 
 **Agent frontmatter (required for every `agents/*.md`):**
 
     ---
-    name: fellowship:<lowercase-name>
+    name: <lowercase-name>           # bare; Claude Code adds the fellowship: prefix at runtime
     description: [one paragraph + examples block]
     tools: [YAML list — see semantics below]
     model: inherit | sonnet | opus | haiku
@@ -211,12 +211,10 @@ Some skills also declare `user-invocable: true` and `trigger: /fellowship:<name>
 - **New spec/ADR:** `docs/fellowship/specs/YYYY-MM-DD-<slug>.md`. ADRs use `adr-` prefix in the slug.
 - **New plan:** `docs/fellowship/plans/YYYY-MM-DD-<slug>.md`.
 
-After any structural change: bump `.claude-plugin/plugin.json` `version`, mirror it in `marketplace.json`, run `node hooks/health-check.mjs` (expect 27/0), run `node --test tests/*.test.mjs`.
+After any structural change: bump `.claude-plugin/plugin.json` `version`, mirror it in `marketplace.json`, run `node hooks/health-check.mjs` (expect 36/0), run `node --test tests/*.test.mjs`.
 
 ## Concerns
 
-- **No `session-start.mjs` worker** — `hooks/session-start` is self-contained Bash, breaking the shim+worker pattern used by every other hook (`plan-gate`, `context-monitor`, `session-end`, `quest-log-consolidate`). Surface for Sam — either document the exception or extract logic into `session-start.mjs` for consistency.
-- **`evals/pippin/` lacks `soft.md`** — every other agent eval suite has one. Either add the rubric or document why Pippin is hard-only.
 - **Two improvements specs may overlap** — `docs/fellowship/specs/2026-04-22-fellowship-real-usage-improvements.md` and `2026-04-26-fellowship-v1-improvements.md`. Confirm one supersedes the other and archive the older.
 - **`__pycache__` directories scattered through `evals/`** — gitignored, so harmless, but every Python-touching agent should know they appear after a run.
 - **`src/` and `examples/` are gitignored** — `src/__tests__/email.test.ts` looks like a leftover fixture rather than load-bearing code. Confirm before relying on it.

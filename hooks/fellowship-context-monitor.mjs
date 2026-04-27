@@ -57,7 +57,11 @@ process.stdin.on('end', () => {
     // Debounce: persist previous warning level in a per-session tmpfile.
     // Env vars do not survive across PostToolUse invocations — each is a
     // fresh process — so disk is the only place cross-invocation state lives.
-    const statePath = path.join(os.tmpdir(), `fellowship-ctx-warn-${sessionId}.json`);
+    // path.basename strips any directory traversal (e.g. "../") that could
+    // appear if a malicious sessionId ever leaks through hook input. Without
+    // it, `..` segments would let the state file land outside os.tmpdir().
+    const safeSessionId = path.basename(String(sessionId));
+    const statePath = path.join(os.tmpdir(), `fellowship-ctx-warn-${safeSessionId}.json`);
     let previousLevel = null;
     try {
       if (fs.existsSync(statePath)) {

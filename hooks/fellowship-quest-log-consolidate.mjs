@@ -73,7 +73,9 @@ function todayISO() {
 }
 
 function atomicWrite(targetPath, contents) {
-  const tmp = `${targetPath}.tmp`;
+  // Unique suffix prevents .tmp collisions if two consolidate runs race
+  // (e.g. SessionStart and a slash-command invocation overlapping).
+  const tmp = `${targetPath}.${process.pid}.${Date.now()}.tmp`;
   writeFileSync(tmp, contents, 'utf8');
   renameSync(tmp, targetPath);
 }

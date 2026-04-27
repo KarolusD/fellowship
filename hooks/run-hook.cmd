@@ -15,6 +15,19 @@ if "%~1"=="" (
     exit /b 1
 )
 
+REM Allowlist of known hook scripts (mirrors hooks/hooks.json).
+REM Reject any other script name to prevent path traversal or arbitrary execution.
+REM Update this list whenever a new hook is registered in hooks.json.
+set "HOOK_NAME=%~1"
+if /i "%HOOK_NAME%"=="session-start" goto :hook_ok
+if /i "%HOOK_NAME%"=="fellowship-quest-log-consolidate" goto :hook_ok
+if /i "%HOOK_NAME%"=="fellowship-plan-gate" goto :hook_ok
+if /i "%HOOK_NAME%"=="fellowship-context-monitor" goto :hook_ok
+if /i "%HOOK_NAME%"=="fellowship-session-end" goto :hook_ok
+echo run-hook.cmd: unknown hook script "%HOOK_NAME%" >&2
+exit /b 1
+:hook_ok
+
 set "HOOK_DIR=%~dp0"
 
 REM Try Git for Windows bash in standard locations
@@ -41,6 +54,23 @@ CMDBLOCK
 
 # Unix: run the named script directly
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SCRIPT_NAME="$1"
+SCRIPT_NAME="${1:-}"
+
+# Allowlist of known hook scripts (mirrors hooks/hooks.json).
+# Reject any other script name to prevent path traversal or arbitrary execution.
+# Update this list whenever a new hook is registered in hooks.json.
+case "$SCRIPT_NAME" in
+    session-start|fellowship-quest-log-consolidate|fellowship-plan-gate|fellowship-context-monitor|fellowship-session-end)
+        ;;
+    "")
+        echo "run-hook.cmd: missing script name" >&2
+        exit 1
+        ;;
+    *)
+        echo "run-hook.cmd: unknown hook script \"$SCRIPT_NAME\"" >&2
+        exit 1
+        ;;
+esac
+
 shift
 exec bash "${SCRIPT_DIR}/${SCRIPT_NAME}" "$@"

@@ -67,7 +67,7 @@ The quest log is the plan's structure. It assigns tasks to companions and define
 
 ### Assign companions by expertise
 
-Match tasks to the right specialist:
+Match tasks to the right companion:
 - Building new code, creating files → engineer
 - Reviewing, refactoring existing code → QA engineer
 - Writing tests for existing code → test engineer
@@ -165,7 +165,7 @@ Not every plan needs multi-agent orchestration. Recommend the lightest tier that
 
 **Tier 1 — Direct.** The plan is simple enough to execute inline. A few edits, a config change, a small feature. No agents needed. Just do it.
 
-**Tier 2 — One companion.** The plan is focused work for one specialist. Dispatch one agent, review their output. Most plans land here.
+**Tier 2 — One companion.** The plan is focused work for one companion. Dispatch one agent, review their output. Most plans land here.
 
 **Tier 3 — Sequential chain.** Multiple tasks that depend on each other. Dispatch companions in sequence — each one builds on the previous output. Review between each step.
 

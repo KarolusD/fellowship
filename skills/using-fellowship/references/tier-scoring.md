@@ -30,7 +30,7 @@ Scoring anchors classification. Evaluate signals before classifying — don't ca
 | Score | Tier | What happens |
 |-------|------|-------------|
 | ≤ 0 | **Tier 1 — Direct** | Gandalf handles. No agents. |
-| 1–3 | **Tier 2 — One specialist** | One skill or one agent dispatch. |
+| 1–3 | **Tier 2 — One companion** | One skill or one agent dispatch. |
 | 4–6 | **Tier 3 — Sequential chain** | Plan first. Gimli → Legolas → Pippin cycle. |
 | ≥ 7 | **Tier 4 — Parallel / Teams** | Plan first. Parallel branches or Agent Teams. |
 
