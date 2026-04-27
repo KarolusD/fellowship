@@ -4,6 +4,31 @@ A LotR-themed multi-agent system for solo product development. Built as a [Claud
 
 You are Frodo. You carry the Ring — your product, your vision, your burden. The Fellowship exists to serve you on the quest.
 
+## Getting Started
+
+Install the plugin and Gandalf becomes your main agent automatically — full orchestration, persistent memory, personality.
+
+Claude Code uses a two-step install: add the Fellowship as a plugin source, then install from it.
+
+```bash
+/plugin marketplace add KarolusD/fellowship
+/plugin install fellowship@fellowship
+```
+
+Every session starts with Gandalf guiding the quest.
+
+### On First Run
+
+Once installed, open Claude Code inside any project directory. Gandalf greets you in voice and reads the state of the repo before anything else.
+
+On a fresh project with no `docs/fellowship/`, he bootstraps the structure and asks: *"What are we building, and who is it for?"* — the quest begins there.
+
+On an existing project, he picks up the thread from the quest log and tells you where things stood when the last session ended.
+
+**Other ways to use the Fellowship:**
+
+**Mid-session** — type `/fellowship:brainstorming` or `/fellowship:planning` to load a skill into your current session without spinning up a full agent.
+
 ## The Fellowship
 
 Ten companions walk beside you. Each carries a distinct purpose — no two share the same blade.
@@ -86,14 +111,15 @@ The Fellowship is a Claude Code plugin. When installed, it provides specialized 
 
 **Agents** are self-contained specialists. Each agent's craft methodology lives inline in their agent file — not in a separate skill. This means each agent is a complete document: character, role, craft, behavioral contracts, and reporting format in one place. No cross-referencing, no drift.
 
+Gandalf is not an agent — he is the orchestration skill loaded by the default agent at session start. The nine companions are agents.
+
 ```
 skills/                                agents/
-  brainstorming/SKILL.md                gandalf.md   ← orchestrator
-  planning/SKILL.md                     aragorn.md   ← product manager
-  visual-exploration/SKILL.md           merry.md     ← architect
-  autoimprove/SKILL.md                  gimli.md     ← engineer
-                                        legolas.md   ← code reviewer
-                                        boromir.md   ← security engineer
+  using-fellowship/SKILL.md  ← orch.   aragorn.md   ← product manager
+  brainstorming/SKILL.md                merry.md     ← architect
+  planning/SKILL.md                     gimli.md     ← engineer
+  visual-exploration/SKILL.md           legolas.md   ← code reviewer
+  autoimprove/SKILL.md                  boromir.md   ← security engineer
                                         pippin.md    ← test engineer
                                         arwen.md     ← product designer
                                         sam.md       ← devops / infra
@@ -103,43 +129,6 @@ skills/                                agents/
 **Slash commands** use character names: `/aragorn` loads product strategy thinking. `/boromir` loads security review. The character is the entry point; the skill is the knowledge.
 
 **Skills stay cross-cutting.** A skill worth creating is one multiple agents could load — debugging patterns, framework-specific methodology, workflow processes. Agent-specific craft belongs in the agent file.
-
-### Getting Started
-
-Install the plugin and Gandalf becomes your main agent automatically — full orchestration, persistent memory, personality.
-
-Claude Code uses a two-step install: add the Fellowship as a plugin source, then install from it.
-
-```bash
-/plugin marketplace add KarolusD/fellowship
-/plugin install fellowship@fellowship
-```
-
-Every session starts with Gandalf guiding the quest.
-
-#### On First Run
-
-Once installed, open Claude Code inside any project directory. Gandalf greets you in voice and reads the state of the repo before anything else.
-
-On a fresh project with no `docs/fellowship/`, he bootstraps the structure and asks: *"What are we building, and who is it for?"* — the quest begins there.
-
-On an existing project, he picks up the thread from the quest log and tells you where things stood when the last session ended.
-
-**Other ways to use the Fellowship:**
-
-**One-off session** — start Gandalf explicitly for a single session:
-```bash
-claude --agent fellowship:gandalf
-```
-
-**Mid-session** — type `/fellowship:brainstorming` or `/fellowship:planning` to load a skill into your current session without spinning up a full agent.
-
-**Opt out per project** — if you don't want Gandalf on a specific project, add to that project's `.claude/settings.json`:
-```json
-{
-  "agent": null
-}
-```
 
 ### Tiered Routing
 
@@ -211,6 +200,12 @@ Unlike stateless workflow tools, the Fellowship remembers. Every agent has `memo
 - **Design decisions** live in `docs/fellowship/` — version-controlled specs, plans, and architecture records readable by humans and agents alike
 - **Feedback capture** — when a companion misbehaves, Gandalf silently logs it to `~/.claude/fellowship/feedback-log.jsonl`. These entries become new eval scenarios for AutoImprove, closing the loop between real-project failures and agent improvement
 
+### Known Limitations
+
+**Native `TodoWrite` unavailable to the main thread.** Gandalf cannot show a live multi-step checklist via `TodoWrite` when running under the Fellowship plugin. The workaround is `docs/fellowship/quest-log.md`, which uses markdown checkbox syntax and is updated by Gandalf as steps complete. Investigation is ongoing for v1.1.
+
+**Coexistence with other identity-injecting plugins.** Fellowship's SessionStart hook injects a strong "you are Gandalf" identity wrapper at message one. If another plugin doing the same — Superpowers, GSD, or any orchestrator-as-skill plugin following the same pattern — is also installed and active, both injections fire and the model receives competing personas in the same context window. Behavior degrades. Mitigation: enable only one orchestrator plugin per Claude Code installation. Skill-only plugins (mattpocock-skills, claude-skills directories) coexist cleanly; agent-only plugins coexist cleanly; only orchestrator-injecting plugins conflict.
+
 ## Plugin Structure
 
 ```
@@ -224,16 +219,16 @@ fellowship/
     run-hook.cmd                    ← cross-platform hook dispatcher
 
   skills/
+    using-fellowship/SKILL.md       ← orchestrator (Gandalf), loaded at session start
     brainstorming/SKILL.md          ← cross-cutting, any agent
     planning/SKILL.md               ← cross-cutting, any agent
     visual-exploration/SKILL.md     ← design direction exploration
     autoimprove/SKILL.md            ← overnight agent improvement loop
 
   agents/
-    gandalf.md aragorn.md merry.md   ← orchestrator, PM, architect
-    gimli.md legolas.md boromir.md   ← engineer, reviewer, security
-    pippin.md arwen.md sam.md        ← testing, design, infra
-    bilbo.md                         ← technical writer
+    aragorn.md merry.md gimli.md    ← product manager, architect, engineer
+    legolas.md boromir.md pippin.md ← code reviewer, security, testing
+    arwen.md sam.md bilbo.md        ← product designer, devops / infra, technical writer
 
   evals/
     _runner/improve.sh              ← overnight improvement runner

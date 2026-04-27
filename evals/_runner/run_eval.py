@@ -87,17 +87,27 @@ def run_hard_assertions(hard_protected: str, response: str, scenario: dict) -> d
 
 
 def run_soft_assertion(assertion_text: str, response: str) -> bool:
-    """Judge a single soft assertion with claude-haiku. Returns True if passes."""
+    """Judge a single soft assertion with claude-haiku. Returns True if passes.
+
+    On timeout or subprocess error, returns False (slow/erroring judge counts as
+    a failure for that assertion). Must not crash the whole eval run — one slow
+    grader should not kill the cycle.
+    """
     prompt = (
         f"Assertion: {assertion_text}\n\n"
         f"Response: {response}\n\n"
         "In 1 sentence explain your reasoning. Then write only TRUE or FALSE."
     )
-    stdout, _, _ = run_subprocess(
-        ["claude", "--dangerously-skip-permissions",
-         "--model", "claude-haiku-4-5", "--print", prompt],
-        timeout=60,
-    )
+    try:
+        stdout, _, _ = run_subprocess(
+            ["claude", "--dangerously-skip-permissions",
+             "--model", "claude-haiku-4-5", "--print", prompt],
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        slug = assertion_text[:60].strip().rstrip("?").replace(" ", "_").lower()
+        print(f"  [eval] soft judge timed out on '{slug}' — counting as failure", file=sys.stderr)
+        return False
     output = stdout.strip()
     lines = [l.strip() for l in output.splitlines() if l.strip()]
     if not lines:
@@ -121,14 +131,24 @@ def main() -> None:
     parser.add_argument("--worktree", required=True, help="Absolute path to git worktree")
     parser.add_argument("--hard-protected", required=True, dest="hard_protected",
                         help="Absolute path to protected hard.py copy")
+    parser.add_argument("--scenarios-path", dest="scenarios_path", default=None,
+                        help="Override path to scenarios.jsonl (default: <worktree>/evals/<agent>/scenarios.jsonl). "
+                             "Use to run focused subsets without modifying the canonical suite.")
     args = parser.parse_args()
 
     worktree = args.worktree
     agent = args.agent
     hard_protected = args.hard_protected
 
-    scenarios_path = Path(worktree) / "evals" / agent / "scenarios.jsonl"
-    agent_path = Path(worktree) / "agents" / f"{agent}.md"
+    scenarios_path = (
+        Path(args.scenarios_path) if args.scenarios_path
+        else Path(worktree) / "evals" / agent / "scenarios.jsonl"
+    )
+    # Gandalf identity lives in the using-fellowship skill, not an agent file.
+    if agent == "gandalf":
+        agent_path = Path(worktree) / "skills" / "using-fellowship" / "SKILL.md"
+    else:
+        agent_path = Path(worktree) / "agents" / f"{agent}.md"
 
     if not scenarios_path.exists():
         print(json.dumps({"error": f"scenarios.jsonl not found: {scenarios_path}"}))
@@ -161,44 +181,89 @@ def main() -> None:
     assertion_fail_counts: dict[str, int] = {}
     failures: list[dict] = []
 
-    for scenario in scenarios:
+    # Incremental progress file — survives kill mid-run.
+    # Each line is a JSON object with per-scenario results; consumers (humans,
+    # downstream tooling) can tail this file while the run is in flight.
+    progress_path = Path(worktree) / "evals" / agent / ".progress.jsonl"
+    progress_path.parent.mkdir(parents=True, exist_ok=True)
+    # Truncate any prior incremental log; this run owns the file.
+    progress_path.write_text("")
+
+    total_scenarios = len(scenarios)
+
+    for idx, scenario in enumerate(scenarios, start=1):
         scenario_id = scenario.get("id", "unknown")
-        print(f"  [eval] scenario {scenario_id}...", file=sys.stderr)
+        print(f"  [eval] scenario {scenario_id} ({idx}/{total_scenarios})...", file=sys.stderr)
 
         response = run_scenario(scenario, agent_instructions)
+
+        scenario_hard_pass = 0
+        scenario_hard_total = 0
+        scenario_soft_pass = 0
+        scenario_soft_total = 0
+        scenario_failures: list[dict] = []
 
         # Hard assertions
         hard_results = run_hard_assertions(hard_protected, response, scenario)
         for assertion_name, passed in hard_results.items():
             hard_total += 1
+            scenario_hard_total += 1
             if passed:
                 hard_pass += 1
+                scenario_hard_pass += 1
             else:
                 assertion_fail_counts[assertion_name] = assertion_fail_counts.get(assertion_name, 0) + 1
-                failures.append({
+                f = {
                     "scenario_id": scenario_id,
                     "assertion": assertion_name,
                     "type": "hard",
                     "response_preview": response[:200] + "..." if len(response) > 200 else response,
-                })
+                }
+                failures.append(f)
+                scenario_failures.append({"assertion": assertion_name, "type": "hard"})
 
         # Soft assertions
         if has_soft:
             for assertion_text in soft_assertions:
                 soft_total += 1
+                scenario_soft_total += 1
                 passed = run_soft_assertion(assertion_text, response)
                 if passed:
                     soft_pass += 1
+                    scenario_soft_pass += 1
                 else:
                     # Use a short slug as assertion name for soft
                     slug = assertion_text[:60].strip().rstrip("?").replace(" ", "_").lower()
                     assertion_fail_counts[slug] = assertion_fail_counts.get(slug, 0) + 1
-                    failures.append({
+                    f = {
                         "scenario_id": scenario_id,
                         "assertion": slug,
                         "type": "soft",
                         "response_preview": response[:200] + "..." if len(response) > 200 else response,
-                    })
+                    }
+                    failures.append(f)
+                    scenario_failures.append({"assertion": slug, "type": "soft"})
+
+        # Per-scenario summary to stderr (visible mid-run; survives `tail -40`).
+        soft_summary = f" soft={scenario_soft_pass}/{scenario_soft_total}" if scenario_soft_total else ""
+        fail_summary = f" failing=[{', '.join(f['assertion'] for f in scenario_failures)}]" if scenario_failures else ""
+        print(
+            f"  [eval] {scenario_id} hard={scenario_hard_pass}/{scenario_hard_total}{soft_summary}{fail_summary}",
+            file=sys.stderr,
+        )
+
+        # Append per-scenario record to the incremental progress file.
+        with progress_path.open("a") as pf:
+            pf.write(json.dumps({
+                "scenario_id": scenario_id,
+                "index": idx,
+                "total": total_scenarios,
+                "hard_pass": scenario_hard_pass,
+                "hard_total": scenario_hard_total,
+                "soft_pass": scenario_soft_pass,
+                "soft_total": scenario_soft_total,
+                "failing_assertions": [f["assertion"] for f in scenario_failures],
+            }) + "\n")
 
     hard_score = hard_pass / hard_total if hard_total > 0 else 0.0
     soft_score: float | None = None

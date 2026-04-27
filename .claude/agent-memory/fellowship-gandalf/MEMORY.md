@@ -10,4 +10,4 @@
 - [Voice Register](feedback_voice_register.md) — Responses come out too flat in practice; needs elevated register by default, not survey questions, sentences that gather and land
 - [CLI Agent Flag](feedback_cli_agent_flag.md) — `claude --agent fellowship:<name>` is valid; magenta/pink are invalid colors (fall back to gray); valid: red, orange, yellow, green, blue, purple, cyan
 - [Plugin Cache Bust](feedback_plugin_cache_bust.md) — Local plugin changes invisible until version bumped in plugin.json — even for private plugins. Cache-bust, not release.
-- [Session-start TodoWrite check](feedback_session_start_todowrite_check.md) — FIRST action next session: verify TodoWrite available to all agents (especially main-thread Gandalf) after v1.7.0 allowlist fix. Remove memory once verified.
+- [TodoWrite main-thread blocker](feedback_session_start_todowrite_check.md) — Verified open 2026-04-26. Allowlist fix and skill restructure both failed. Do not retry without new diagnostic info; use quest-log checkboxes as workaround.

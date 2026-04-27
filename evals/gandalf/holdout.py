@@ -6,8 +6,8 @@ import os
 with open("evals/gandalf/holdout.jsonl") as f:
     holdout_scenarios = [json.loads(line) for line in f if line.strip()]
 
-# Read agent file
-with open("agents/gandalf.md") as f:
+# Read agent file (Gandalf identity now lives in the using-fellowship skill)
+with open("skills/using-fellowship/SKILL.md") as f:
     agent_instructions = f.read()
 
 # Read soft assertions

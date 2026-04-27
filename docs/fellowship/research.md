@@ -29,6 +29,30 @@ The most critical design question for any multi-agent system. Fellowship uses a 
 
 ---
 
+## SessionStart Skill Injection
+
+**How does the orchestrator establish its identity at message one without polluting the default agent?**
+
+A central design problem: Gandalf needs a substantial operating manual (routing logic, dispatch protocol, escalation triggers, voice), but the *default* Claude Code agent should remain vanilla — preserving its native tool surface and avoiding the performance cost of a heavy persona on every session. Fellowship resolves this by injecting Gandalf's identity at session start via a skill, rather than registering Gandalf as an always-on agent file.
+
+### The pattern
+
+A `SessionStart` hook reads an entry-point skill (`skills/using-fellowship/SKILL.md`) and emits its contents as `additionalContext` wrapped in a strong identity declaration. The first message of every session therefore begins with the orchestrator's full operating manual — the Fellowship principles, dispatch protocol, companion roster, and reporting format — established before the user has typed anything. The default agent itself remains untouched: tools, permissions, and base behavior are unchanged. Gandalf is a *layer* on top, not a replacement.
+
+### Why it matters
+
+Two failure modes are avoided. First, **default-agent pollution**: registering an orchestrator as the default `agent` in plugin settings replaces the vanilla Claude Code experience for every interaction, including ones that don't need orchestration. Users lose the bare tool surface they expected. Second, **late identity establishment**: relying on a CLAUDE.md file or skill auto-discovery to load the orchestrator means the first message sometimes arrives before the identity is fully resolved, producing inconsistent behavior on session start. SessionStart injection is deterministic — the identity is in context at message one, every session, with no race condition.
+
+### Where Fellowship learned it
+
+The pattern is adapted from **Superpowers**, which uses an identical structure: a `using-superpowers` SKILL.md as the orchestrator's entry-point manual, loaded by a session-start hook that wraps it with an identity declaration. Superpowers proved the pattern works at scale for a multi-agent system; Fellowship adopted it after the earlier experiment of registering Gandalf as a default agent file produced exactly the default-pollution problem described above. ([Source](https://github.com/obra/superpowers))
+
+### Trade-off currently being navigated
+
+The entry-point skill grows large because it carries the orchestrator's full operating manual in a single file. Long skill files see reduced adherence past the same context-budget thresholds documented elsewhere in this doc — the orchestrator's own guidance becomes harder to follow as the file lengthens. The known mitigation, also borrowed from Superpowers' structure, is to break detailed sub-domains (escalation playbooks, companion roster details, dispatch examples) into `references/*.md` files that the entry skill points to but does not inline. Fellowship is currently navigating this trade-off — the entry skill is the load-bearing piece, and decomposition into references is on the roadmap.
+
+---
+
 ## Engineering Principles
 
 **What makes AI-generated code good?**
@@ -73,11 +97,11 @@ Fellowship uses a three-layer memory architecture. Each layer was chosen based o
 
 ### Key findings
 
-- **Mastra's Observational Memory** (2026) achieved 94.87% on LongMemEval — the highest score ever recorded — by converting raw messages into structured, timestamped observations. Their key insight: *observations during execution* are a distinct memory type most systems miss. Fellowship's learnings log (`docs/fellowship/learnings.md`) captures this episodic knowledge without Mastra's infrastructure overhead. ([Source](https://mastra.ai/research/observational-memory))
+- **Mastra's Observational Memory** (2026) achieved 94.87% on LongMemEval — the highest score ever recorded — by converting raw messages into structured, timestamped observations. Their key insight: *observations during execution* are a distinct memory type most systems miss. Fellowship captures this episodic knowledge through per-agent native memory (`memory: project`) — each companion persists their own observations across sessions without Mastra's infrastructure overhead. (An earlier shared `learnings.md` log was removed in favor of this per-agent model, on the principle that episodic knowledge belongs with the agent that earned it.) ([Source](https://mastra.ai/research/observational-memory))
 
-- **"Memory in the Age of AI Agents"** survey (Dec 2025, arXiv:2512.13564) decomposes memory into Formation, Evolution, and Retrieval. It identifies three types: semantic (facts), episodic (experiences), and procedural (workflows). Fellowship's specs are semantic, the learnings log is episodic, and plans are procedural — covering all three without a specialized memory system.
+- **"Memory in the Age of AI Agents"** survey (Dec 2025, arXiv:2512.13564) decomposes memory into Formation, Evolution, and Retrieval. It identifies three types: semantic (facts), episodic (experiences), and procedural (workflows). Fellowship's specs are semantic, per-agent memory is episodic, and plans are procedural — covering all three without a specialized memory system.
 
-- **A-MEM** (NeurIPS 2025, arXiv:2502.12110) uses Zettelkasten-inspired notes with LLM-generated keywords and dynamic links. The insight: categorized, tagged memories are more retrievable than unstructured ones. Fellowship's learnings log uses categories (`engineering`, `tooling`, `codebase`, `process`, `environment`) for this reason — scannable without search infrastructure.
+- **A-MEM** (NeurIPS 2025, arXiv:2502.12110) uses Zettelkasten-inspired notes with LLM-generated keywords and dynamic links. The insight: categorized, tagged memories are more retrievable than unstructured ones. Fellowship took a different bet: per-agent memory is uncategorized prose, persisted natively by each companion. The retrievability problem is solved by *scope* (each companion only sees their own memory) rather than by tagging — a lighter approach justified by the small per-agent volume.
 
 - **"Multi-Agent Memory from a Computer Architecture Perspective"** (Mar 2026, arXiv:2603.10062) proposes a three-layer hierarchy: I/O layer, cache layer, memory layer. Fellowship mirrors this: context window (working), per-agent memory (cache), shared files (long-term).
 
@@ -90,8 +114,8 @@ Fellowship uses a three-layer memory architecture. Each layer was chosen based o
 | Layer | Research basis | What it handles |
 |---|---|---|
 | Claude Code auto-memory | Built-in, proven at scale | User preferences, build commands, working style |
-| Per-agent memory (`memory: project`) | Collaborative Memory (ICML 2025) — private agent knowledge | Agent-specific patterns and discoveries |
-| Fellowship shared memory (`docs/fellowship/`) | Mastra, A-MEM, file-based consensus | Quest log, learnings, specs, plans |
+| Per-agent memory (`memory: project`) | Collaborative Memory (ICML 2025) — private agent knowledge | Episodic observations, agent-specific patterns and discoveries |
+| Fellowship shared memory (`docs/fellowship/`) | Mastra, file-based consensus | Quest log, specs, plans, handoffs, debug log |
 
 ### The curator pattern
 
@@ -136,7 +160,7 @@ The simplest unsolved problem in most AI coding tools.
 
 ### Key findings
 
-- **Superpowers plugin** has no cross-session memory. Each session starts fresh. If work stops mid-plan, the next session must be told where to resume. Fellowship's quest log (`docs/fellowship/quest-log.md`) solves this with a single, human-readable file.
+- **Superpowers plugin** has no cross-session memory. Each session starts fresh. If work stops mid-plan, the next session must be told where to resume. Fellowship's quest log (`docs/fellowship/quest-log.md`) solves the orchestrator-level continuity problem with a single, human-readable file. The contrast is narrower than it once was — Fellowship previously also kept a shared `learnings.md` episodic log, since removed in favor of per-agent native memory — but the quest log remains a meaningful difference: an orchestrator-visible snapshot of where work stands, persisted across sessions.
 
 - **claude-mem** (37.2k GitHub stars) hooks into 5 lifecycle events and achieves cross-session continuity through dual storage (SQLite + ChromaDB). Effective but heavy. Fellowship achieves the core benefit (session continuity) with a single markdown file — no databases, no services. ([Source](https://github.com/thedotmack/claude-mem))
 
@@ -266,7 +290,7 @@ Subagents are fire-and-forget workers. Teammates are persistent collaborators. F
 | 3 — Sequential chain | Subagent chain | Dependencies between tasks, sequential by nature |
 | 4 — Parallel/debate | **Agent Teams** | Companions need to communicate, challenge, coordinate |
 
-**Fellowship's memory files (quest-log, learnings, product.md) are safe** because our design already says only Gandalf writes to shared memory. Companions report back; Gandalf curates. In Agent Teams mode, the same rule applies — teammates report via messages, the lead persists to files.
+**Fellowship's memory files (quest-log, per-agent memory, product.md) are safe** because our design already says only Gandalf writes to shared memory. Companions report back; Gandalf curates. In Agent Teams mode, the same rule applies — teammates report via messages, the lead persists to files.
 
 **Companion skills would load automatically** (teammates load project skills). The companion identity (personality, boundaries) would need to come via the spawn prompt since teammate support for custom agent files is unclear.
 
@@ -366,7 +390,7 @@ Across these implementations, a consistent pattern emerges:
 
 | Concept | Our current approach | Potential evolution |
 |---|---|---|
-| Inter-phase artifacts | Quest log + learnings (session-level) | Phase-level artifact files for Tier 4 work |
+| Inter-phase artifacts | Quest log + per-agent memory (session-level) | Phase-level artifact files for Tier 4 work |
 | Context resets | Companions dispatch fresh | Already implemented — each companion starts clean |
 | Focused prompts | Gandalf scopes dispatch context per task | Already aligned with the principle |
 | Validation gates | health-check.mjs (structural) | Hook-based quality gates for Tier 3+ work |

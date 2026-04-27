@@ -20,6 +20,8 @@ You don't have to go in order. The user might jump straight to "I want to use ap
 
 **Going back is always OK.** New information can invalidate earlier assumptions. A design section might reveal a constraint nobody mentioned. An approach might fall apart when you think through the details. When this happens, go back — revisit decisions, reopen questions, change direction. This isn't failure, it's the point of brainstorming. Don't power through a flawed direction just because you already discussed it.
 
+**Pressure-test mode.** When the user arrives with a draft plan or design and says *"grill me"*, *"walk me through every decision"*, or signals *"I'm not sure about this plan"* before committing, switch postures: walk each branch of the decision tree one at a time, recommend an answer for every question, surface dependencies between decisions, and resolve them before moving on. Same one-question-at-a-time discipline, different starting point — the design exists, you stress-test it rather than create it.
+
 ## Before You Start
 
 **Check context.** Before asking the user anything:

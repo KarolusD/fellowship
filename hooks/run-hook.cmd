@@ -34,8 +34,8 @@ if %ERRORLEVEL% equ 0 (
     exit /b %ERRORLEVEL%
 )
 
-REM No bash found - exit silently rather than error
-REM (plugin still works, just without SessionStart context injection)
+REM No bash found - warn loudly so the user knows context injection is skipped
+echo Fellowship: bash not found. SessionStart context skipped -- install Git for Windows for full functionality. 1>&2
 exit /b 0
 CMDBLOCK
 

@@ -71,6 +71,15 @@ run_agent() {
     local branch="autoimprove/${agent}-${timestamp}"
     local worktree="/tmp/fellowship-improve-${agent}"
 
+    # Gandalf identity lives in the using-fellowship skill, not an agent file.
+    # AGENT_FILE is the relative path inside the worktree to the agent's prompt.
+    local AGENT_FILE
+    if [[ "$agent" == "gandalf" ]]; then
+        AGENT_FILE="skills/using-fellowship/SKILL.md"
+    else
+        AGENT_FILE="agents/${agent}.md"
+    fi
+
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "  Agent:      $agent"
@@ -180,7 +189,7 @@ Agent: ${agent}
 Failing assertion: ${top_assertion}
 Failure examples:
 ${failure_examples}
-Read agents/${agent}.md, then output the complete modified agent file with ONE targeted fix."
+Read ${AGENT_FILE}, then output the complete modified agent file with ONE targeted fix."
 
             local proposed_agent
             # Strip ANTHROPIC_API_KEY so nested claude falls back to Keychain/subscription auth.
@@ -198,7 +207,7 @@ Read agents/${agent}.md, then output the complete modified agent file with ONE t
             fi
 
             # Apply the proposed change
-            echo "$proposed_agent" > "${worktree}/agents/${agent}.md"
+            echo "$proposed_agent" > "${worktree}/${AGENT_FILE}"
 
             # Re-run scenarios with the changed agent
             echo "[cycle ${current_cycle}] Evaluating change..."
@@ -211,7 +220,7 @@ Read agents/${agent}.md, then output the complete modified agent file with ONE t
             # Validate output
             if ! echo "$new_results" | python3 -c "import sys, json; json.loads(sys.stdin.read())" 2>/dev/null; then
                 echo "[cycle ${current_cycle}] ERROR: run_eval.py returned non-JSON — reverting." >&2
-                (cd "$worktree" && git checkout "agents/${agent}.md")
+                (cd "$worktree" && git checkout "${AGENT_FILE}")
                 current_cycle=$((current_cycle + 1))
                 continue
             fi
@@ -226,7 +235,7 @@ Read agents/${agent}.md, then output the complete modified agent file with ONE t
 
             # Extract hypothesis from proposed file (sanitize quotes for shell embedding)
             local hypothesis
-            hypothesis=$(grep "# hypothesis:" "${worktree}/agents/${agent}.md" 2>/dev/null \
+            hypothesis=$(grep "# hypothesis:" "${worktree}/${AGENT_FILE}" 2>/dev/null \
                 | tail -1 \
                 | sed 's/# hypothesis: //' \
                 | tr -d '"'"'" \
@@ -240,7 +249,7 @@ Read agents/${agent}.md, then output the complete modified agent file with ONE t
                 local delta
                 delta=$(python3 -c "print(round((float('${new_overall}') - float('${prev_overall}')) * 100, 1))")
                 (cd "$worktree" && \
-                    git add "agents/${agent}.md" "evals/${agent}/history.jsonl" && \
+                    git add "${AGENT_FILE}" "evals/${agent}/history.jsonl" && \
                     git commit -m "exp: +${delta}% ${top_assertion} — ${hypothesis}")
                 commit_hash=$(cd "$worktree" && git rev-parse --short HEAD)
                 consecutive_discards=0
@@ -248,7 +257,7 @@ Read agents/${agent}.md, then output the complete modified agent file with ONE t
                 echo "[cycle ${current_cycle}] Kept. Score: ${prev_overall} → ${new_overall} (+${delta}%)"
             else
                 outcome="discarded"
-                (cd "$worktree" && git checkout "agents/${agent}.md")
+                (cd "$worktree" && git checkout "${AGENT_FILE}")
                 consecutive_discards=$((consecutive_discards + 1))
                 echo "[cycle ${current_cycle}] Discarded. Score: ${prev_overall} → ${new_overall} (no improvement)"
             fi
@@ -314,7 +323,7 @@ PYEOF
     git -C "$worktree" log --oneline | grep "exp:" || echo "  (none)"
     echo ""
     echo "Full diff against main:"
-    git -C "$worktree" diff main -- "agents/${agent}.md"
+    git -C "$worktree" diff main -- "${AGENT_FILE}"
     echo ""
     echo "Session summary:"
     cat "$worktree/evals/${agent}/session-summary.md" 2>/dev/null || echo "  (no summary written)"
@@ -328,15 +337,28 @@ PYEOF
 }
 
 # ── Dispatch ───────────────────────────────────────────────────────────────────
+#
+# Recognized agents (any with an evals/<agent>/ directory):
+#   Mature suites (validated, --all-eligible):
+#     gimli, gandalf, legolas, pippin
+#   Authored 2026-04-26 (real scenarios written by Pippin, not yet validated end-to-end):
+#     aragorn, arwen, bilbo, boromir, merry, sam
+#
+# The runner dispatches by directory name, so any of the above works as
+# `./improve.sh <agent>`. The --all flag only runs the mature suites
+# because the newly-authored suites haven't been validated against
+# baseline scores yet — run them individually first.
 
 if [[ "$RUN_ALL" == true ]]; then
-    echo "Starting sequential autoimprove: Gimli → Gandalf → Legolas"
+    echo "Starting sequential autoimprove: Gimli → Gandalf → Legolas → Pippin"
+    echo "(Skipping authored-but-unvalidated suites: aragorn, arwen, bilbo, boromir, merry, sam — run individually first.)"
     echo "Cycles per agent: $CYCLES"
     run_agent "gimli" "$CYCLES"
     run_agent "gandalf" "$CYCLES"
     run_agent "legolas" "$CYCLES"
+    run_agent "pippin" "$CYCLES"
     echo ""
-    echo "All three agents complete."
+    echo "All four mature agents complete."
 else
     run_agent "$TARGET" "$CYCLES"
 fi

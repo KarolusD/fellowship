@@ -95,6 +95,41 @@ function checkPluginManifest() {
   } else {
     pass('plugin.json \u2014 valid, all required fields present');
   }
+
+  const version = data.version;
+  if (!version) {
+    fail('plugin.json \u2014 version field missing');
+  } else if (!/^\d+\.\d+\.\d+/.test(version)) {
+    fail(`plugin.json \u2014 version "${version}" is not valid semver`);
+  } else {
+    pass(`plugin.json \u2014 version "${version}" is valid semver`);
+  }
+}
+
+function checkCursorManifest() {
+  // Optional: Cursor support. Validated only when the file exists.
+  // Absence is fine \u2014 Cursor support is not required.
+  if (!existsSync(resolve(ROOT, '.cursor-plugin/plugin.json'))) return;
+  const { data, error } = readJSON('.cursor-plugin/plugin.json');
+  if (error) { fail(`.cursor-plugin/plugin.json \u2014 ${error}`); return; }
+
+  const required = ['name', 'version', 'hooks'];
+  const missing = required.filter(f => !data[f]);
+  if (missing.length) {
+    fail(`.cursor-plugin/plugin.json \u2014 missing fields: ${missing.join(', ')}`);
+    return;
+  }
+  if (!/^\d+\.\d+\.\d+/.test(data.version)) {
+    fail(`.cursor-plugin/plugin.json \u2014 version "${data.version}" is not valid semver`);
+    return;
+  }
+  // Hooks pointer must resolve.
+  const hookPath = data.hooks.replace(/^\.\//, '');
+  if (!existsSync(resolve(ROOT, hookPath))) {
+    fail(`.cursor-plugin/plugin.json \u2014 hooks "${data.hooks}" does not resolve to a file`);
+    return;
+  }
+  pass(`.cursor-plugin/plugin.json \u2014 valid, version "${data.version}", hooks resolve`);
 }
 
 // ---------------------------------------------------------------------------
@@ -130,12 +165,29 @@ function checkMarketplaceManifest() {
 // ---------------------------------------------------------------------------
 
 function checkSettings() {
+  const settingsPath = resolve(ROOT, 'settings.json');
+  if (!existsSync(settingsPath)) {
+    // Absence is the correct state: Gandalf identity is injected via the
+    // SessionStart hook (skills/using-fellowship/SKILL.md), not via agent override.
+    // Plugin-level statusLine is not honored by Claude Code, so a settings.json
+    // declaring only that key would be silent dead code.
+    pass('settings.json \u2014 absent (correct \u2014 Gandalf injected via hook, no plugin-level overrides needed)');
+    return;
+  }
+
   const { data, error } = readJSON('settings.json');
   if (error) { fail(`settings.json \u2014 ${error}`); return; }
 
   const agent = data.agent;
-  if (!agent) { fail('settings.json \u2014 missing "agent" field'); return; }
+  if (!agent) {
+    // No default-agent override is correct: Gandalf identity is injected via
+    // the SessionStart hook (skills/using-fellowship/SKILL.md), not via agent override.
+    // The vanilla default agent inherits all native tools including TodoWrite.
+    pass('settings.json \u2014 no default-agent override (correct \u2014 Gandalf injected via hook)');
+    return;
+  }
 
+  // If an agent field is present, verify it resolves
   // Resolve agent ref like "fellowship:gandalf" -> agents/gandalf.md
   const agentName = agent.includes(':') ? agent.split(':').pop() : agent;
   const agentFile = `agents/${agentName}.md`;
@@ -299,6 +351,7 @@ console.log('Fellowship Health Check');
 console.log('=======================');
 
 checkPluginManifest();
+checkCursorManifest();
 checkMarketplaceManifest();
 checkSettings();
 checkHooks();

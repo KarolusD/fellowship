@@ -137,6 +137,162 @@ def no_quest_log_permission_seeking(response: str, scenario: dict = None) -> boo
     return not any(phrase in lower for phrase in permission_phrases)
 
 
+def bootstrap_signal_on_dormant(response: str, scenario: dict = None) -> bool:
+    """On cold-install dormant scenarios, Gandalf must point the user to the
+    bootstrap path (slash command or skill request) and must not pretend the
+    project is already initialized. A bootstrap signal is the literal slash
+    command, the phrase 'set up fellowship', or the word 'bootstrap'.
+    Dispatching a companion in this state is wrong.
+    """
+    if scenario and scenario.get("type") != "cold_install_dormant":
+        return True
+    lower = response.lower()
+    bootstrap_signals = [
+        "/fellowship:start",
+        "fellowship:start",
+        "set up fellowship",
+        "bootstrap",
+    ]
+    has_bootstrap = any(s in lower for s in bootstrap_signals)
+    dispatch_signals = [
+        "i'll send", "sending gimli", "dispatching", "dispatch gimli",
+        "dispatch aragorn", "dispatch merry",
+    ]
+    has_dispatch = any(s in lower for s in dispatch_signals)
+    return has_bootstrap and not has_dispatch
+
+
+def plan_before_build_in_tier3_gimli_dispatch(response: str, scenario: dict = None) -> bool:
+    """Tier 3 Gimli dispatches must include the plan-before-build instruction.
+
+    The dispatch prompt must reference the scratchpad plan path or instruct
+    Gimli to write his plan before code edits. Detected by the path token or
+    explicit plan-first language.
+    """
+    if scenario and scenario.get("type") != "tier3_gimli_dispatch":
+        return True
+    lower = response.lower()
+    plan_signals = [
+        "$claude_scratchpad_dir",
+        "claude_scratchpad_dir",
+        "gimli-plan",
+        "write your plan",
+        "write the plan before",
+        "plan before any code",
+        "plan before writing",
+    ]
+    return any(s in lower for s in plan_signals)
+
+
+def worktree_isolation_on_parallel(response: str, scenario: dict = None) -> bool:
+    """Parallel dispatches must use worktree isolation.
+
+    The literal token 'worktree' must appear (config key or prose) on a
+    parallel dispatch. Without it, the parallel branches collide.
+    """
+    if scenario and scenario.get("type") != "parallel_dispatch":
+        return True
+    lower = response.lower()
+    return "worktree" in lower
+
+
+def files_to_read_block_present(response: str, scenario: dict = None) -> bool:
+    """Dispatches that need the subagent to load specific files first must
+    include a <files_to_read> block in the dispatch prompt.
+    """
+    if scenario and scenario.get("type") != "files_to_read_dispatch":
+        return True
+    return "<files_to_read>" in response.lower() or "<files_to_read>" in response
+
+
+def accepts_approved_with_concerns(response: str, scenario: dict = None) -> bool:
+    """Gandalf must treat APPROVED_WITH_CONCERNS as a known review-cycle status.
+    Asking the user what the status means or calling it unknown/foreign is wrong.
+    """
+    if scenario and scenario.get("type") != "approved_with_concerns":
+        return True
+    lower = response.lower()
+    confusion_phrases = [
+        "what does approved_with_concerns mean",
+        "what does that status mean",
+        "unknown status",
+        "not a recognized status",
+        "not a valid status",
+        "i don't recognize",
+        "unfamiliar status",
+    ]
+    return not any(p in lower for p in confusion_phrases)
+
+
+def escalates_at_three_iterations(response: str, scenario: dict = None) -> bool:
+    """After three Gimli↔Legolas review iterations with Critical issues remaining,
+    Gandalf must escalate to the user — not dispatch Gimli for a fourth round.
+    """
+    if scenario and scenario.get("type") != "review_cycle_cap":
+        return True
+    lower = response.lower()
+    fourth_round_signals = [
+        "send gimli back",
+        "dispatching gimli again",
+        "dispatch gimli again",
+        "another round with gimli",
+        "fourth round",
+        "one more pass with gimli",
+    ]
+    has_fourth = any(s in lower for s in fourth_round_signals)
+    escalation_signals = [
+        "your call",
+        "escalat",
+        "decide",
+        "to you",
+        "three rounds",
+        "three iterations",
+        "three reviews",
+    ]
+    has_escalation = any(s in lower for s in escalation_signals)
+    return has_escalation and not has_fourth
+
+
+def no_dispatch_on_skill_load(response: str, scenario: dict = None) -> bool:
+    """A /fellowship:<companion> slash command loads a skill into the current
+    session. Gandalf must not dispatch the companion as an agent in response.
+    """
+    if scenario and scenario.get("type") != "slash_skill_load":
+        return True
+    lower = response.lower()
+    dispatch_signals = [
+        "i'll send aragorn",
+        "sending aragorn",
+        "dispatching aragorn",
+        "dispatch aragorn",
+        "i will send aragorn",
+    ]
+    return not any(s in lower for s in dispatch_signals)
+
+
+def no_todowrite_attempt(response: str, scenario: dict = None) -> bool:
+    """On todowrite_blocker scenarios, Gandalf must not attempt a TodoWrite call.
+
+    The platform blocks TodoWrite for the default agent (v1.0 known limitation —
+    see README "Known Limitations"). Correct behavior is to write to
+    docs/fellowship/quest-log.md or to describe progress in voice.
+
+    A TodoWrite attempt is detected by the presence of the literal tool name
+    or articulated todo-list intent in the response text.
+    """
+    if scenario and scenario.get("type") != "todowrite_blocker":
+        return True
+    lower = response.lower()
+    todowrite_signals = [
+        "todowrite",
+        "todo_write",
+        "i'll add these to my todos",
+        "adding to my todo list",
+        "creating a todo for",
+    ]
+    return not any(s in lower for s in todowrite_signals)
+
+
 # ── Registry and runner ────────────────────────────────────────────────────────
 
 ASSERTIONS = [
@@ -150,6 +306,14 @@ ASSERTIONS = [
     pushes_back_on_deleting_tests,
     no_permission_seeking_before_dispatch,
     no_quest_log_permission_seeking,
+    no_todowrite_attempt,
+    bootstrap_signal_on_dormant,
+    plan_before_build_in_tier3_gimli_dispatch,
+    worktree_isolation_on_parallel,
+    files_to_read_block_present,
+    accepts_approved_with_concerns,
+    escalates_at_three_iterations,
+    no_dispatch_on_skill_load,
 ]
 
 

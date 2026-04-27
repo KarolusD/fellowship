@@ -1,6 +1,6 @@
 ---
 name: ux-audit
-description: 6-pillar UX audit methodology with scoring (1–4 per pillar) and BLOCK/FLAG/PASS verification. Use when auditing existing products or codebases for design quality — copywriting, visuals, color, typography, spacing, and experience design.
+description: Use when running a design-quality audit of implemented frontend code or producing a scored UX report. 6-pillar methodology (copywriting, visuals, color, typography, spacing, experience) with 1–4 scoring and BLOCK/FLAG/PASS verdicts. Pair with `accessibility` when the WCAG layer needs deeper reference.
 ---
 
 # UX Audit
@@ -238,71 +238,6 @@ Note in the audit report whether screenshots were captured or the audit ran code
 
 ## Audit Report Template
 
-Write audit output to `ux-audit-[product].md`.
+Write audit output to `ux-audit-[product].md`. Full template (pillar scores table, WCAG layer, priority fixes, detailed findings, files audited): see [`references/audit-report-template.md`](references/audit-report-template.md). Load when writing the report.
 
-```markdown
-# UX Audit: [Product/Feature]
-
-**Date:** [date]
-**Method:** Code review [+ screenshots if server running]
-
-## Summary
-
-[2–3 sentences: overall impression and most critical finding]
-
-## Pillar Scores
-
-| Pillar | Score | Finding |
-|--------|-------|---------|
-| 1. Copywriting | X/4 | [one line] |
-| 2. Visuals | X/4 | [one line] |
-| 3. Color | X/4 | [one line] |
-| 4. Typography | X/4 | [one line] |
-| 5. Spacing | X/4 | [one line] |
-| 6. Experience Design | X/4 | [one line] |
-
-**Overall: X/24**
-
-**Verdict: APPROVED / BLOCKED**
-
-## WCAG Layer
-
-| Criterion | Level | Status | Finding |
-|-----------|-------|--------|---------|
-| Color contrast | AA | PASS/FAIL/WARN | [detail] |
-| Keyboard navigation | AA | PASS/FAIL/WARN | [detail] |
-| Focus indicators | AA | PASS/FAIL/WARN | [detail] |
-| Alt text | A | PASS/FAIL/WARN | [detail] |
-| Form labels | A | PASS/FAIL/WARN | [detail] |
-| Screen reader structure | A | PASS/FAIL/WARN | [detail] |
-
-## Top 3 Priority Fixes
-
-1. **[Issue]** — [user impact] — [specific fix]
-2. **[Issue]** — [user impact] — [specific fix]
-3. **[Issue]** — [user impact] — [specific fix]
-
-## Detailed Findings
-
-### Pillar 1: Copywriting (X/4)
-[findings with file:line references]
-
-### Pillar 2: Visuals (X/4)
-[findings]
-
-### Pillar 3: Color (X/4)
-[findings with class usage counts]
-
-### Pillar 4: Typography (X/4)
-[findings with size/weight distribution]
-
-### Pillar 5: Spacing (X/4)
-[findings with spacing class analysis]
-
-### Pillar 6: Experience Design (X/4)
-[findings with state coverage analysis]
-
-## Files Audited
-
-[list of files examined]
-```
+The WCAG layer in the template is a six-row gesture — for criterion-by-criterion remediation depth, point readers to [`skills/accessibility/references/wcag-2.2-checklist.md`](../accessibility/references/wcag-2.2-checklist.md) rather than restating criteria here.

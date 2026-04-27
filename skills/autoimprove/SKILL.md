@@ -1,6 +1,6 @@
 ---
 name: autoimprove
-description: Autonomous improvement loop for a Fellowship agent — runs baseline, cycles, and report phases against eval scenarios.
+description: Use when an agent file shows recurring failures in a feedback log, or when running a scheduled improvement pass on a Fellowship companion. Autonomous improvement loop with baseline, cycles, and report phases against eval scenarios.
 ---
 
 # AutoImprove — Agent Improvement Loop
@@ -25,11 +25,7 @@ If no mode is specified, run the full 8-step loop (legacy behavior).
 
 ---
 
-**CRITICAL: Every action step requires actual tool use — not reasoning about it, not describing it.**
-- File reads → use the Read tool
-- File writes and edits → use the Write or Edit tool
-- Running Python → use the Bash tool: `python evals/<target>/hard.py`
-- Git commands → use the Bash tool. Showing a git command in your response is not enough. Run it.
+**CRITICAL: Every action step requires actual tool use — not reasoning about it, not describing it.** File reads use the Read tool; file writes use Write/Edit; running Python and git use the Bash tool. Showing a command in your response is not the same as running it. Do not simulate responses internally — the same model that wrote the agent instructions also knows what "correct" looks like, so simulation is circular. Real invocations are required.
 
 ---
 
@@ -68,84 +64,9 @@ If the file does not exist, skip this step — it will be created at Step 8.
 
 ### Step 2 — BASELINE
 
-**CRITICAL: Do not simulate responses internally.** Simulation produces circular results — the same model that wrote the agent instructions also knows what "correct" looks like. Real invocations are required. Each scenario must invoke a fresh, isolated claude process.
+For each scenario in `scenarios.jsonl`: invoke the agent in a fresh `claude` subprocess, capture the response, run hard assertions against it, and (if `soft.md` exists) judge each soft assertion via Haiku. Record `{scenario_id, assertion_name, passed, response_preview}` for each assertion.
 
-For each scenario in `scenarios.jsonl`:
-
-**1. Invoke the agent directly** using the Bash tool. Run this Python script for each scenario (substituting actual target and scenario values):
-
-```bash
-python3 << 'PYEOF'
-import subprocess, json
-
-target = "<target>"  # e.g. "gimli"
-scenario_json = '<paste full scenario JSON line here>'
-scenario = json.loads(scenario_json)
-
-# Build prompt: full agent file + optional context + scenario input
-agent_instructions = open(f"agents/{target}.md").read()
-prompt = agent_instructions + "\n\n---\n\n"
-if scenario.get("context"):
-    prompt += f"Context: {scenario['context']}\n\n"
-prompt += scenario["input"]
-
-# Fresh invocation — Haiku for cost efficiency; behaviorally representative
-result = subprocess.run(
-    ["claude", "--dangerously-skip-permissions", "--model", "claude-haiku-4-5", "--print", prompt],
-    capture_output=True, text=True, timeout=120
-)
-response = result.stdout.strip()
-
-# Save for assertion runner
-open("/tmp/fellowship_eval_response.txt", "w").write(response)
-open("/tmp/fellowship_eval_scenario.json", "w").write(scenario_json)
-
-print(f"=== RESPONSE (scenario {scenario['id']}) ===")
-print(response[:600] + "..." if len(response) > 600 else response)
-PYEOF
-```
-
-Run once per scenario. Response is saved to `/tmp/fellowship_eval_response.txt`.
-
-**2. Run hard assertions** using the Bash tool:
-
-```bash
-# Use the PROTECTED copy — never evals/<target>/hard.py directly
-python3 /tmp/fellowship_eval_<target>_hard.py \
-  /tmp/fellowship_eval_scenario.json \
-  < /tmp/fellowship_eval_response.txt
-```
-
-The protected copy was placed at `/tmp/fellowship_eval_<target>_hard.py` by the runner before the worktree was created. It cannot be modified by this loop.
-
-**3. If `soft.md` exists:** for each assertion line, judge it using the Bash tool:
-
-```bash
-python3 << 'PYEOF'
-import subprocess
-
-assertion = "<assertion text from soft.md>"
-response = open("/tmp/fellowship_eval_response.txt").read()
-prompt = f"""Assertion: {assertion}
-Response: {response}
-
-In 1-2 sentences, explain your reasoning. Then on a new line write only TRUE or FALSE."""
-
-result = subprocess.run(
-    ["claude", "--model", "claude-haiku-4-5", "--print", prompt],
-    capture_output=True, text=True, timeout=60
-)
-output = result.stdout.strip()
-# Verdict is the last non-empty line
-verdict = [l.strip() for l in output.splitlines() if l.strip()][-1].upper()
-passed = verdict.startswith("TRUE")
-print(f"{'PASS' if passed else 'FAIL'}: {assertion[:80]}")
-if not passed:
-    print(f"  Reasoning: {output[:200]}")
-PYEOF
-```
-
-**4. Record:** `{scenario_id, assertion_name, passed, response_preview}` for each assertion.
+Full Python recipes for invocation and soft-assertion judging: see [`references/invocation-recipes.md`](references/invocation-recipes.md). Load before running baseline.
 
 Calculate scores:
 - `hard_score` = (assertions passing across all scenarios) / (total assertions × scenarios)
@@ -170,8 +91,6 @@ Append baseline entry to `evals/<target>/history.jsonl`:
   "commit": null
 }
 ```
-
-**Timing note:** Real invocations take 15–30 seconds each. A full baseline across all scenarios takes 5–15 minutes. This is expected and correct. Do not shortcut by simulating.
 
 ---
 
@@ -198,11 +117,13 @@ Rules:
 - Do not change unrelated sections.
 - Do not remove existing content unless it directly contradicts the fix.
 
+When the runner spawns a separate "proposer" subprocess instead of having this loop edit directly, the proposer prompt lives in [`propose.md`](propose.md). It enforces these same rules and instructs the proposer to print the full modified agent file to stdout.
+
 ---
 
 ### Step 5 — EVALUATE
 
-Re-run all scenarios against the changed version of `agents/<target>.md`. Calculate new `hard_score`, `soft_score`, and `overall` using the same method as Step 2.
+Re-run all scenarios against the changed version of `agents/<target>.md`. Calculate new `hard_score`, `soft_score`, and `overall` using the same method as Step 2 (same recipes in [`references/invocation-recipes.md`](references/invocation-recipes.md)).
 
 ---
 
@@ -270,75 +191,11 @@ In full-loop mode (no mode specified): go back to Step 3. Stop when any of these
 
 ### Step 8 — REPORT
 
-Write `evals/<target>/session-summary.md`:
+Write `evals/<target>/session-summary.md` and (if `holdout.jsonl` exists) run holdout validation. Append per-assertion entries to `evals/<target>/assertion-health.jsonl`. Then commit.
 
-```markdown
-# AutoImprove Session — <target> — <date>
+Full template (result block, holdout block, assertion-health block, commit command): see [`references/session-summary-template.md`](references/session-summary-template.md).
 
-## Result
-- Cycles run: <N>
-- Starting score: <baseline overall>
-- Ending score: <final overall>
-- Improvement: +<delta>%
-
-## Changes That Held
-| Cycle | Assertion | Hypothesis | Commit |
-|-------|-----------|------------|--------|
-| <N> | <assertion_name> | <hypothesis> | <hash> |
-
-## Changes Discarded
-| Cycle | Assertion | Hypothesis | Reason |
-|-------|-----------|------------|--------|
-| <N> | <assertion_name> | <hypothesis> | no improvement |
-
-## Notes
-<Any observations about plateaus, conflicting changes, or assertions that proved resistant>
-```
-
-**Before committing**, if `evals/<target>/holdout.jsonl` exists, run the holdout validation:
-
-- Run every holdout scenario through the agent (same method as Step 2)
-- Calculate `holdout_hard_score`, `holdout_soft_score`, `holdout_overall` using the same formulas
-- **Do not use holdout results to drive any changes** — this is observation only
-- Append a holdout section to the session summary:
-
-```markdown
-## Holdout Validation
-- Holdout overall: <score>
-- Training overall: <final overall>
-- Generalization gap: <training − holdout> (>0.10 suggests overfitting to training scenarios)
-```
-
-A gap under 0.10 means the improvements generalized. A gap over 0.10 means the agent learned the specific training scenarios rather than the underlying behavior — flag this clearly.
-
-**Assertion health:** Before committing, append one entry per assertion to `evals/<target>/assertion-health.jsonl`. Use the final cycle's per-assertion results (from the last full evaluation run):
-
-```json
-{"assertion": "<name>", "type": "hard|soft", "passed": true|false, "session_date": "<YYYY-MM-DD>", "overall_at_session_end": <float>}
-```
-
-One line per assertion. Append — never overwrite. Include all hard assertions from `hard.py` and all soft assertions from `soft.md`.
-
-Also append an **Assertion Health** section to the session summary:
-
-```markdown
-## Assertion Health
-
-| Assertion | Type | This Session | Prior Sessions |
-|-----------|------|-------------|----------------|
-| <name> | hard | PASS | PASS (2 sessions) |
-| <name> | soft | FAIL | FAIL (2 sessions) — persistent |
-```
-
-Annotate: "persistent" when an assertion failed in 2+ prior sessions; "regression" when it passed last session and fails now; "holding" when it passed in 3+ consecutive sessions.
-
-Add `evals/<target>/assertion-health.jsonl` to the git add command before committing.
-
-Use the Bash tool to commit the summary:
-```bash
-git add evals/<target>/session-summary.md evals/<target>/history.jsonl evals/<target>/assertion-health.jsonl
-git commit -m "exp: session summary — <target> <date>"
-```
+When the runner spawns a separate "reporter" subprocess instead of having this loop write the summary directly, the reporter prompt lives in [`report.md`](report.md). It instructs the reporter to read `history.jsonl` and `assertion-health.jsonl`, run holdout validation, and write + commit the summary.
 
 ---
 
@@ -346,22 +203,13 @@ git commit -m "exp: session summary — <target> <date>"
 
 Use `claude-haiku-4-5` (or the fastest/cheapest available model) for soft assertions. Do not use a large model — these are simple binary judgments.
 
-For each soft assertion line in `soft.md`, send a prompt like:
-
-```
-Assertion: <assertion text from soft.md>
-Response: <agent response text>
-
-In 1-2 sentences, explain your reasoning. Then on a new line write only TRUE or FALSE.
-```
-
-Parse the verdict from the **last non-empty line** of the output — not the whole response.
-
-Soft assertions in `soft.md` are written as yes/no questions. A TRUE answer means the assertion passes. A FALSE answer means it fails.
+Soft assertions in `soft.md` are written as yes/no questions. A TRUE answer means the assertion passes. A FALSE answer means it fails. Parse the verdict from the **last non-empty line** of the output — not the whole response.
 
 The brief reasoning step is not full chain-of-thought — it's a single explanatory sentence that aids debugging when an assertion fails unexpectedly. Do not ask for step-by-step reasoning; that increases token cost without improving accuracy for simple qualitative judgments.
 
 Keep soft assertions simple. If an assertion requires aesthetic judgment or nuanced interpretation, it should not be in `soft.md`. The spec author already wrote them to be Haiku-compatible.
+
+Full prompt template: see [`references/invocation-recipes.md`](references/invocation-recipes.md).
 
 ---
 

@@ -40,3 +40,8 @@ Full history of completed work. Not loaded at session start — read only on req
 ## Archived 2026-04-26
 
 - [2026-04-22] P2 shipped — Legolas structural review (Merry ADR → Gimli implementation; prefilter + responsibility test + duplication grep + map + Structural: section + anti-paralysis carve-out)
+- [2026-04-22] P4+P5+P6 shipped — ethos absence notice, project-local skills survey, quest-log consolidation reminder, /fellowship:add-ethos command, Gandalf product.md triggers + Project-Local section (v1.5.0)
+- [2026-04-22] Quest-log auto-consolidation v1.6.1 — Merry ADR (parse contract + edit safety + archive schema) → Gimli hook (`fellowship-quest-log-consolidate.mjs` + Bash shim + slash command, archive-first/atomi...
+- [2026-04-22] Codebase cleanup v1.5.1 — Critical (TodoWrite in KNOWN_TOOLS) + 5 Important (SessionEnd shim, Gandalf color, model: inherit ×9, autoimprove frontmatter, stale test) + 1 Minor (pipefail guard); Lego...
+- [2026-04-22] Codebase map generated — `/fellowship:map`
+

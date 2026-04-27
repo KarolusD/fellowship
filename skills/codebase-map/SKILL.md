@@ -1,6 +1,6 @@
 ---
 name: codebase-map
-description: Map an unfamiliar codebase — stack, architecture, conventions, structure, and concerns — into a single prescriptive reference file that all companions can use.
+description: Use when entering an unfamiliar codebase, or when companions report missing structural context. Maps the stack, architecture, conventions, structure, and concerns into a single prescriptive reference file all companions can use.
 user-invocable: true
 trigger: /fellowship:map
 ---

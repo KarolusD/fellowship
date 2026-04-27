@@ -1,18 +1,15 @@
 ---
-name: Session-start TodoWrite verification
-description: First action on next session — verify TodoWrite availability across all 10 Fellowship agents before anything else
+name: TodoWrite main-thread blocker — verified open
+description: TodoWrite is not available to main-thread Gandalf despite settings.json allowlist and skill-restructure migration. Open for v1.1.
 type: feedback
 ---
 
-On the very next session start (after the v1.7.0 agent tool allowlist fix), the **first** action is to verify `TodoWrite` is available to every Fellowship agent. Not just the dispatched companions — the main-thread Gandalf instance too.
+`TodoWrite` is not available to the main-thread Gandalf instance under the Fellowship plugin, despite repeated fixes. Verified open 2026-04-26.
 
-**Why:** v1.7.0 (2026-04-23) corrected agent tool allowlists after a multi-round investigation. Karolus identified the gap when he saw no live checklist during a Tier 3 dispatch. Two prior diagnoses were partly wrong; the third (Sam round 3) settled the mechanism: `tools:` field is strict allowlist, built-ins included. The fix added missing tools to 5 agents and updated the codebase map. Validation was deferred to next session restart — that is the moment of truth.
+**Why:** Multi-round investigation. v1.7.0 added TodoWrite to the agent frontmatter `tools:` allowlist — did not work. v1.0 migration moved Gandalf from default-agent override to a SessionStart-injected skill (`skills/using-fellowship/SKILL.md`) so the main thread would stay vanilla and inherit native tools — also did not work. Calling `TodoWrite` from the main thread returns `TodoWrite exists but is not enabled in this context`. Settings allowlist contains it. Skill is loaded. Tool gating is happening at a layer not reachable from a plugin.
 
-**How to apply:** before any other work, before reading the quest log greeting, before responding to any "what's next" question — run a verification:
-
-1. Check the running Gandalf instance's tool list — does it include `TodoWrite`, `Glob`, `Grep`?
-2. If yes for Gandalf: confirm by attempting a small `TodoWrite` call (e.g., adding the verification itself as a checklist item).
-3. If TodoWrite is available, proceed normally. If still missing on the main thread despite agent file declaring it, this is a Claude Code platform bug to file — surface it to Karolus, do not hand-wave.
-4. For dispatched companions: trust the agent file declarations (all 10 list TodoWrite per v1.3.2 + v1.7.0 fixes). Spot-check on first dispatch.
-
-This memory can be removed once verification has happened and the result is captured in the quest log.
+**How to apply:**
+1. Do not propose more "fix attempts" without new diagnostic information. Both the agent-allowlist path and the skill-injection path have been tried and failed identically.
+2. Use `docs/fellowship/quest-log.md` checkboxes as the visible-progress mechanism for Tier 3+ orchestration. README documents this in the Known Limitations subsection.
+3. Dispatched companions still get `TodoWrite` natively — only the main thread is gated. So companion-internal checklists work fine; Gandalf-orchestrator-level checklists do not.
+4. If new information emerges (Claude Code release notes, Anthropic clarification, a working Superpowers analogue that confirms the pattern *should* work), revisit as v1.1 work — Path A (diagnose) on the quest log.

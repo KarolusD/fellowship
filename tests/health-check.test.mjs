@@ -62,11 +62,12 @@ function createFixture(opts = {}) {
   writeFileSync(join(root, 'hooks', 'run-hook.cmd'), '#!/bin/sh\necho ok');
   chmodSync(join(root, 'hooks', 'run-hook.cmd'), 0o755);
 
-  // .claude-plugin/plugin.json
+  // .claude-plugin/plugin.json — version is required for cache-busting / update detection
   mkdirSync(join(root, '.claude-plugin'));
   const pluginJson = opts.pluginJson ?? {
     name: 'test-plugin',
     description: 'A test plugin',
+    version: '0.0.1',
   };
   writeFileSync(
     join(root, '.claude-plugin', 'plugin.json'),
@@ -213,14 +214,16 @@ describe('health-check — plugin.json failures', () => {
     }
   });
 
-  it('passes when plugin.json has name+description but no version (relative-path plugin)', async () => {
+  it('fails when plugin.json is missing the version field', async () => {
+    // plugin.json `version` is required: Claude Code uses it for update detection / cache-busting.
+    // Omitting it means every commit triggers an update prompt for installed users.
     const root = createFixture({
       pluginJson: { name: 'test-plugin', description: 'no version here' },
     });
     try {
       const { exitCode, stdout } = await runHealthCheck(root);
-      assert.equal(exitCode, 0, `Expected exit 0, got ${exitCode}.\nOutput:\n${stdout}`);
-      assert.match(stdout, /plugin\.json — valid/);
+      assert.equal(exitCode, 1, `Expected exit 1, got ${exitCode}.\nOutput:\n${stdout}`);
+      assert.match(stdout, /plugin\.json.*version field missing/i);
     } finally {
       cleanup(root);
     }
@@ -282,12 +285,14 @@ describe('health-check — settings.json failures', () => {
     }
   });
 
-  it('fails when settings.json is missing agent field', async () => {
+  it('passes when settings.json has no agent field (Gandalf injected via hook)', async () => {
+    // No default-agent override is correct architecture: Gandalf identity is injected
+    // by the SessionStart hook (skills/using-fellowship/SKILL.md), not via agent override.
     const root = createFixture({ settingsJson: {} });
     try {
       const { exitCode, stdout } = await runHealthCheck(root);
-      assert.equal(exitCode, 1);
-      assert.match(stdout, /settings\.json.*missing.*agent/i);
+      assert.equal(exitCode, 0);
+      assert.match(stdout, /settings\.json.*no default-agent override/i);
     } finally {
       cleanup(root);
     }
