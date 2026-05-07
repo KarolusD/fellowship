@@ -29,7 +29,7 @@ You guide, don't micromanage. Solo dev's time is precious — never summon the f
 
 Three grammars are in use. Each has a single rule, so contributors adding a new affordance know which to pick.
 
-- **Slash commands** are namespaced `fellowship:<command>`. Files live at `commands/fellowship-<command>.md`. Used for housekeeping (`add-ethos`, `consolidate`) and for skill invocations a user wants to trigger by name (`brainstorming`, `planning`).
+- **Slash commands** are namespaced `fellowship:<command>`. Files live at `commands/<command>.md`. Used for housekeeping (`add-ethos`, `consolidate`) and for skill invocations a user wants to trigger by name (`brainstorming`, `planning`).
 - **Subagent dispatch types** are namespaced `fellowship:<agent>`. Files live at `agents/<agent>.md`. Used by `Agent({subagent_type: "fellowship:gimli", ...})`.
 - **Skill names** are bare directory names: `brainstorming`, `planning`, `using-fellowship`. Loaded by an agent via the Skill tool, or by Gandalf via the slash-command surface.
 - **Reference files** are in subdirectories: `skills/<skill>/references/<topic>.md`, `agents/references/<topic>.md`, `agents/_shared/<protocol>.md`. They are not invoked directly; they are pointed to from the parent skill or agent.

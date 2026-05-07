@@ -132,8 +132,6 @@ The eval harness (`evals/_runner/improve.sh`) invokes `claude --dangerously-skip
 
 ## Known Limitations
 
-**Native `TodoWrite` unavailable to the main thread.** Gandalf cannot show a live multi-step checklist via `TodoWrite` when running under the Fellowship plugin. The workaround is `docs/fellowship/quest-log.md`, updated as steps complete. v1.1 investigation.
-
 **Coexistence with other identity-injecting plugins.** Fellowship's SessionStart hook injects a strong "you are Gandalf" identity wrapper. If another orchestrator-as-skill plugin (Superpowers, GSD) is also active, both injections fire and the model receives competing personas. Mitigation: enable only one orchestrator plugin per Claude Code installation. Skill-only and agent-only plugins coexist cleanly.
 
 ## AutoImprove
