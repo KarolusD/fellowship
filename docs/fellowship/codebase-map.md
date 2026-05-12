@@ -147,11 +147,8 @@ Key files at each stage:
 
 ## Concerns
 
-- **`src/` is a relic.** Contains `src/__tests__/email.test.ts` from old work; the path is gitignored but the directory exists. Verify it's not referenced anywhere, then delete in a cleanup pass.
-- **Stale codebase-map references in archived specs.** Some specs in `docs/fellowship/specs/` (April 2026 audit comparisons) reference the now-retired consolidator. They are historical records, not live docs — leave them. New work should not cite them as current.
-- **Consolidator orphans cleared 2026-05-12.** `hooks/fellowship-quest-log-consolidate*` and `commands/consolidate.md` removed; `run-hook.cmd` allowlist updated. If a session-start regex or downstream tool still references the consolidator, it will surface in `tests/migration-regression.test.mjs`.
-- **`tests/auth-login.test.mjs`** is listed in `.gitignore` — leftover from a fixture experiment; harmless but obscure.
-- **`docs/fellowship/.quest-log-reminder`** is gitignored — it was the failure channel for the (now-retired) consolidator. Won't be written any more, but if a stale file exists locally, `hooks/session-start` will still inject and consume it. Safe to delete by hand.
+- **Consolidator and gitignored-relic sweep landed 2026-05-12.** `hooks/fellowship-quest-log-consolidate*`, `commands/consolidate.md`, `src/`, the `.quest-log-reminder` writer in `fellowship-session-end.mjs`, the §9 reminder consumer in `session-start`, and three stale `.gitignore` lines are all gone. Migration-regression tests catch any new code that resurrects these paths.
+- **Stale references in archived specs.** Some specs in `docs/fellowship/specs/` (April 2026 audit comparisons) name the retired consolidator and the old quest-log section structure. They are historical records, not live docs — leave them. New work should not cite them as current.
 - **Cursor parity is parallel, not equal.** `hooks-cursor.json` and `.cursor-plugin/plugin.json` exist, but Claude Code is the primary target. Cursor-specific features (e.g. `claude_ai_*` MCP servers) only apply when `CURSOR_PLUGIN_ROOT` is set.
 - **No CI configured.** Health check, tests, and eval runner all work locally; no GitHub Actions workflow. Adding one is a v1.1 candidate per the quest log (`v1.1 — hook unit tests`).
 - **Examples directory is gitignored.** `examples/` holds reference clones (Superpowers, GSD, mattpocock-skills, etc.) for offline study. Do not commit. Do not assume contributors have them locally.

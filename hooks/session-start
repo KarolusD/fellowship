@@ -241,17 +241,6 @@ if [ -d "$CLAUDE_DIR" ]; then
     fi
 fi
 
-# ── 9. Quest-log consolidation reminder (P5) ─────────────────────────────────
-REMINDER="${FELLOWSHIP_DIR}/.quest-log-reminder"
-if [ -f "$REMINDER" ]; then
-    reminder_content=$(cat "$REMINDER" 2>/dev/null || echo "")
-    if [ -n "$reminder_content" ]; then
-        reminder_escaped=$(escape_for_json "$reminder_content")
-        session_context="${session_context}\\n<QUEST_LOG_REMINDER>\\n${reminder_escaped}\\n</QUEST_LOG_REMINDER>"
-    fi
-    rm -f "$REMINDER"  # One-shot notice
-fi
-
 # ── Output context as JSON ────────────────────────────────────────────────────
 # Cursor hooks expect additional_context.
 # Claude Code hooks expect hookSpecificOutput.additionalContext.

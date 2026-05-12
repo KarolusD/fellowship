@@ -4,6 +4,3 @@ docs/fellowship/examples/bmad/
 __pycache__/
 *.pyc
 .claude/worktrees/
-docs/fellowship/.quest-log-reminder
-src/
-tests/auth-login.test.mjs
