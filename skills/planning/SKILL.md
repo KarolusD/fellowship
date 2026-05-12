@@ -1,6 +1,7 @@
 ---
 name: planning
 description: "Use after brainstorming to turn a design spec into an implementation plan. Creates a quest log with task breakdown, companion assignments, and execution order."
+user-invocable: false
 ---
 
 # Planning

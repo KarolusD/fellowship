@@ -1,6 +1,7 @@
 ---
 name: ux-audit
 description: Use when running a design-quality audit of implemented frontend code or producing a scored UX report. 6-pillar methodology (copywriting, visuals, color, typography, spacing, experience) with 1–4 scoring and BLOCK/FLAG/PASS verdicts. Pair with `accessibility` when the WCAG layer needs deeper reference.
+user-invocable: false
 ---
 
 # UX Audit

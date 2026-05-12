@@ -49,3 +49,27 @@ Full history of completed work. Not loaded at session start — read only on req
 ## Archived 2026-04-27
 
 - [2026-04-23] Agent tool allowlists corrected v1.7.0 — Sam round-3 research nailed the mechanism (`tools:` is strict allowlist; omit → inherit all; built-ins like TodoWrite governed same as everything else); fix...
+
+## Archived 2026-05-04
+
+- [2026-04-23] Full-codebase Legolas health-check pass — Legolas APPROVED_WITH_CONCERNS (1 Important, 5 Minor); Gimli fixed all six (dead context-monitor debounce → tmpfile; marketplace.json 1.0.0→1.7.0; dead sta...
+
+## Archived 2026-05-12
+
+Quest-log restructure: `## Recently Completed` and `## What Exists` retired; everything below moved here in one pass. Going forward, only decisions and commitments live in `quest-log.md`; the work-completed history lives in `git log` and the structural snapshot lives in `codebase-map.md`.
+
+### Completed (from former "Recently Completed")
+
+- [x] v1.0.0 hot-patch — agent name double-prefix bug. Reverted 9 agents to bare `name: <n>`; updated health-check regex; corrected codebase-map; updated test fixtures. Health 36/0, tests 69/0/1. Tag `v1.0.0` force-moved to `50df304`; main at `7e37e32`. (2026-04-27)
+- [x] v1.0.0 tagged + pushed + submitted to official Anthropic plugin directory. Tag at `ec2e65f`; README simplified 329→189 lines and corrected. Submitted via `platform.claude.com/plugins/submit` — license MIT, status: pending review. (2026-04-27)
+- [x] v1.0-readiness triple audit + two-wave fix pass. Three parallel audits (Legolas consistency, Boromir security, Merry vs Superpowers) surfaced 3 ship-blockers + 6 should-fixes + ~12 minors. All blockers + should-fixes landed across two waves. Three items deferred to v1.1 (now tracked in Open). Health 36/0, tests 70/69-pass/1-skip/0-fail. (2026-04-27)
+- [x] v0.9 polish pass — Cursor full lifecycle parity (`hooks-cursor.json` + `.cursor-plugin/plugin.json`); `grill-me` skill deleted (folded into `brainstorming` pressure-test mode); `using-fellowship/SKILL.md` strengthened on 4 sections; skill bloat refactor across 4 skills; 9-scenario crucial-baseline eval validated post-restructure. Health 27/0; 69 tests pass. (2026-04-26/27)
+- [x] v1.0 deep-improvement pass — six parallel audits → 4 blockers + 6 should-fix + 9 v1.1 candidates against Superpowers and other multi-agent plugins. Eleven follow-up dispatches landed all of it. Spec: `docs/fellowship/specs/2026-04-26-fellowship-v1-improvements.md`. (2026-04-26)
+- [x] v1.0 ship-readiness pass — Sam cleared marketplace blockers; Gimli bloat refactor; Bilbo documentation pass; Legolas behavioral consistency audit. Version held at 0.9.0-dev. Health 26/0. (2026-04-26)
+- [x] Gandalf-as-skill restructure shipped — `skills/using-fellowship/SKILL.md` is the orchestrator entry point; SessionStart hook injects it as `additionalContext`; `agents/gandalf.md` deleted; default-agent override removed from `settings.json`; eight companion agents stripped of Tolkien register. (2026-04-26)
+- [x] Three skills adopted from mattpocock/skills (v0.7.x) — `grill-me` standalone; `design-it-twice` for Merry; TDD principles folded into Pippin. Legolas APPROVED clean. (2026-04-25)
+- [x] v0.7.0 pre-publication prep — Aragorn readiness review + Sam publishing-mechanics research; version reset (1.7.0 → 0.7.0); README "On First Run" + status honesty note. (2026-04-25)
+
+### Snapshot (from former "What Exists" — superseded by docs/fellowship/codebase-map.md)
+
+Orchestrator and nine companions, twelve skills, full hook lifecycle, eleven slash commands, eval suites for all companions, marketplace-ready manifests, MIT license. For the current structural reference see `docs/fellowship/codebase-map.md`. For the current open work see `quest-log.md`.

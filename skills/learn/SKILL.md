@@ -1,8 +1,7 @@
 ---
 name: learn
 description: "Use when Frodo asks 'what do you remember?', when memory references feel stale, or on explicit /fellowship:learn invocation. Reviews, prunes, or exports per-agent memory across the Fellowship. Curator only — never modifies memory without Frodo's approval."
-user-invocable: true
-trigger: /fellowship:learn
+user-invocable: false
 ---
 
 # Learn

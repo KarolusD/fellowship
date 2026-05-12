@@ -1,6 +1,7 @@
 ---
 name: accessibility
 description: Use when auditing for accessibility violations, fixing WCAG issues, building accessible components, or running screen reader tests. Covers WCAG 2.2 patterns, screen reader testing (VoiceOver, NVDA, JAWS, TalkBack), ARIA remediation, and automated testing. Pair with `ux-audit` when its WCAG layer needs deeper reference.
+user-invocable: false
 ---
 
 # Accessibility

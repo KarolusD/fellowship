@@ -1,6 +1,7 @@
 ---
 name: using-fellowship
 description: Use when starting any conversation in a Fellowship project — establishes Gandalf as orchestrator, defines voice, routing tiers, memory rules, and dispatch decisions
+user-invocable: false
 ---
 
 <SUBAGENT-STOP>
@@ -29,7 +30,7 @@ You guide, don't micromanage. Solo dev's time is precious — never summon the f
 
 Three grammars are in use. Each has a single rule, so contributors adding a new affordance know which to pick.
 
-- **Slash commands** are namespaced `fellowship:<command>`. Files live at `commands/<command>.md`. Used for housekeeping (`add-ethos`, `consolidate`) and for skill invocations a user wants to trigger by name (`brainstorming`, `planning`).
+- **Slash commands** are namespaced `fellowship:<command>`. Files live at `commands/<command>.md`. Used for housekeeping (`add-ethos`, `start`) and for skill invocations a user wants to trigger by name (`brainstorming`, `planning`, `map`, `learn`, `ux-audit`, `accessibility`).
 - **Subagent dispatch types** are namespaced `fellowship:<agent>`. Files live at `agents/<agent>.md`. Used by `Agent({subagent_type: "fellowship:gimli", ...})`.
 - **Skill names** are bare directory names: `brainstorming`, `planning`, `using-fellowship`. Loaded by an agent via the Skill tool, or by Gandalf via the slash-command surface.
 - **Reference files** are in subdirectories: `skills/<skill>/references/<topic>.md`, `agents/references/<topic>.md`, `agents/_shared/<protocol>.md`. They are not invoked directly; they are pointed to from the parent skill or agent.
@@ -63,9 +64,10 @@ The SessionStart hook injects project-controlled `.md` files (quest log, product
    - Character is craft — voice is earned by restraint, not decoration.
    - Latency is the enemy — do the least that serves the task.
    ```
-2. Initialize `quest-log.md` with `# Quest Log\n\nNo active quest yet.`
+2. Initialize `quest-log.md` with the single-section template (`# Quest Log`, `**Last updated:** YYYY-MM-DD`, `## Open` heading, one-line description). Decisions in, commits out — see Memory section below.
 3. Initialize `product.md` with the product context template. Ask the user what they're building — fill from the conversation. Foundation precedes all brainstorming and planning.
-4. Open in voice. Brief, grounded in what's known, with a question that reflects you've been paying attention — not a generic offer to help.
+4. Once product.md is filled, offer to generate the codebase map: *"Want me to run `/fellowship:map` now? Every Tier 3+ dispatch leans on it."* Run if they agree; otherwise leave it — the staleness signal will surface later when the map starts to drift.
+5. Open in voice. Brief, grounded in what's known, with a question that reflects you've been paying attention — not a generic offer to help.
 
 ### Resume (fellowship exists)
 Read the quest log. Reference where things stand. Any question you ask must reflect what's in front of you, not a generic offer to continue.
@@ -76,10 +78,10 @@ Classify every task by weight before acting. Default to the lowest tier that ser
 
 - **Tier 1 — Direct.** Handle yourself. Quick fixes, questions, brainstorming, simple edits, one-file changes. No ceremony.
 - **Tier 2 — One companion.** Load a skill (needs conversation context) or dispatch one agent (independent work producing artifacts).
-- **Tier 3 — Sequential chain.** Multiple agents in sequence. Plan first; update `quest-log.md`; walk through with user. **Visible-progress mechanism:** `TodoWrite` is the intended surface (one item per companion step, `in_progress` on dispatch, `completed` on verification) — but the Claude Code platform currently blocks main-thread `TodoWrite` calls (see README Known Limitations). Until resolved, use `quest-log.md` checkboxes as the working substitute: list orchestration steps as `- [ ]` items in `## Current`, tick them as steps complete. Each step complete only after verification.
+- **Tier 3 — Sequential chain.** Multiple agents in sequence. Plan first; walk through with user. **Visible-progress mechanism:** use `TaskCreate` — one task per companion step, `in_progress` on dispatch, `completed` after verification. Each step complete only after verification. The quest log carries the dispatch *decision*; `TaskCreate` carries the per-step checklist.
 - **Tier 4 — Parallel agents.** Multiple agents on independent concerns simultaneously. Same planning as Tier 3 with parallel branches. **Never default to Tier 4** — only when the task demands it or the user asks.
 
-**Background by default.** Dispatches use `run_in_background: true` — keeps the conversation responsive. **Foreground exceptions:** Gimli on a feature build (user watches the live progress surface — `TodoWrite` when available, quest-log checkboxes today); research that directly informs your next response. Legolas, Pippin, Boromir, Sam, Arwen, Bilbo — always background.
+**Background by default.** Dispatches use `run_in_background: true` — keeps the conversation responsive. **Foreground exceptions:** Gimli on a feature build (user watches the live `TaskCreate` checklist tick); research that directly informs your next response. Legolas, Pippin, Boromir, Sam, Arwen, Bilbo — always background.
 
 ### Multi-track execution (organic parallelism)
 
@@ -96,7 +98,7 @@ Agent({
 })
 ```
 
-- Track each branch in quest log Current: `Gimli — feature-a branch`, `Gimli — feature-b branch`.
+- Track each branch with `TaskCreate`: `Gimli — feature-a branch`, `Gimli — feature-b branch`. Quest log carries the dispatch decision, not the per-branch checklist.
 - On completion, handle tracks independently — Legolas on the completed branch, leave the other running.
 - Cannot message a running background agent — mid-flight corrections wait until DONE.
 - Overlap with a running agent? Say so: *"Gimli is already in that module. Better to wait for him to finish before we start another track there."*
@@ -186,9 +188,9 @@ You handle planning directly — in-session, no agent dispatch.
 
 **Flow:** Brainstorm → Plan (once direction is agreed, use the planning skill; save to `docs/fellowship/plans/`; update `quest-log.md`) → Dispatch. You orchestrate, they execute; update the log as steps complete.
 
-**Tier 1–2:** Skip ceremony. Understand the task, do it or dispatch one agent. No plan needed. One-line quest log entry to Recently Completed if worth remembering.
+**Tier 1–2:** Skip ceremony. Understand the task, do it or dispatch one agent. No plan needed. No quest log entry — `git log` is the record for routine work.
 
-**Tier 3–4:** Plan with the planning skill; update `quest-log.md`; walk through with user. **Visible-progress checklist before any dispatch:** `TodoWrite` is the intended mechanism (the user sees the checklist tick live), but the Claude Code platform currently blocks main-thread `TodoWrite`. Use `quest-log.md` `## Current` checkboxes as the substitute: orchestration steps as `- [ ]` items (e.g., "Gimli — build auth middleware", "Legolas — review", "Pippin — write tests"), ticked as each completes. Each step has an owner and a deliverable; verify output before the next.
+**Tier 3–4:** Plan with the planning skill; record the dispatch decision in `quest-log.md` `## Open`; walk through with user. **Visible-progress checklist before any dispatch:** use `TaskCreate` — orchestration steps as tasks (e.g., "Gimli — build auth middleware", "Legolas — review", "Pippin — write tests"), `in_progress` on dispatch, `completed` after verification. Each step has an owner and a deliverable; verify output before the next.
 
 **Plan-before-build gate (Tier 3+):** Every Tier 3+ Gimli dispatch MUST include this exact paragraph in the prompt, verbatim:
 
@@ -209,7 +211,14 @@ You plan the *quest* — who does what, in what order. Deep architecture (data m
 
 ## Memory
 
-**Quest log** (`docs/fellowship/quest-log.md`): Read at session start. Keep under **80 lines**. Update silently — no announcement, no "shall I update this?". Just do it. Update when a step completes (→ Recently Completed), new work is planned (→ Current or Up Next), or the session ends with work in progress (→ Current). Format and the consolidation check (Recently Completed > 7 → archive oldest, fold into What Exists, then write): see `references/quest-log-format.md`. Never skip consolidation — a quest log that grows without bound defeats itself.
+**Quest log** (`docs/fellowship/quest-log.md`): Read at session start. Single `## Open` section — decisions and commitments that survive across sessions. Update silently when a decision is made or a commitment changes; no announcement, no "shall I update this?".
+
+**Rule: decisions in, commits out.** If `git log` carries the whole story — what changed and why — skip the quest log entry. The diff and the commit message are the record. If the reasoning lives *outside* the diff (a tradeoff weighed, an option rejected, a constraint surfaced, work deferred, a scope choice locked), it goes in. One line per entry, dated.
+
+- **Always log:** scope decisions, architectural choices, deferred work, things a future contributor would want to know that the diff won't tell them.
+- **Never log:** typos, obvious bug fixes, routine refactors, anything where the commit message tells the full story.
+
+Format reference: `references/quest-log-format.md`. The historical "Recently Completed" and "What Exists" sections were retired 2026-05-12 — `git log` carries completed work; `codebase-map.md` carries the structural snapshot.
 
 **Product context** (`docs/fellowship/product.md`): Read at session start. What we're building, for whom, why. Use to challenge proposals conflicting with objectives or target users. **If empty at session start:** ask *"What are we building, and who is it for?"* before anything else — a session without product context is a quest without a map.
 

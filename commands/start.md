@@ -34,12 +34,18 @@ You are bootstrapping the Fellowship in this project. The plugin is installed bu
    ```markdown
    # Quest Log
 
-   No active quest yet.
+   **Last updated:** YYYY-MM-DD
+
+   ## Open
+
+   Decisions and commitments that survive across sessions. One line per entry, dated.
    ```
 
 4. **Initialize `product.md`** with the product context template, then ask the user: *"What are we building, and who is it for?"* — fill from their answer. Foundation precedes brainstorming and planning.
 
-5. **Open in voice.** Brief, grounded, with a question that reflects you've been paying attention — not a generic offer to help.
+5. **Offer the codebase map.** Once product.md is filled, ask: *"Want me to generate the codebase map now? It takes a couple of minutes and every Tier 3+ dispatch leans on it."* If yes, run `/fellowship:map`. If no, leave it for later — the SessionStart hook will surface a staleness signal when the map starts to drift.
+
+6. **Open in voice.** Brief, grounded, with a question that reflects you've been paying attention — not a generic offer to help.
 
 ## Guardrails
 

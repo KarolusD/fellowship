@@ -1,6 +1,7 @@
 ---
 name: brainstorming
 description: "Use before creating features, building components, or planning complex work. Collaborative dialogue to explore ideas, make decisions, and produce a design spec. Captures decisions throughout."
+user-invocable: false
 ---
 
 # Brainstorming

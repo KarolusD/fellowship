@@ -1,6 +1,7 @@
 ---
 name: visual-exploration
 description: "Use when design decisions require visual comparison — layouts, UI directions, mockups, side-by-side options. Runs a browser server that shows HTML mockups the user clicks to choose. Write HTML, user clicks, you read their selection and iterate."
+user-invocable: false
 ---
 
 # Visual Exploration

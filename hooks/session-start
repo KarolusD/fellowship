@@ -163,12 +163,34 @@ fi
 # ── 6. codebase-map.md (first 30 lines if file exists) ───────────────────────
 # 30-line cap is preserved (it sits well under the 8KB byte cap); the wrapper
 # is renamed to UNTRUSTED_CODEBASE_MAP for tag uniformity.
+#
+# Staleness signal: after the snippet injection, compare the map's
+# **Generated:** date against git activity in the project. If many new source
+# files have appeared since, surface a notice so the orchestrator can offer
+# /fellowship:map before structural work. The map is consulted on every Tier 3+
+# dispatch — a stale map silently misleads Legolas and Gimli.
 CODEBASE_MAP="${FELLOWSHIP_DIR}/codebase-map.md"
 if [ -f "$CODEBASE_MAP" ]; then
     map_raw=$(head -30 "$CODEBASE_MAP" 2>/dev/null || echo "")
     if [ -n "$map_raw" ]; then
         map_escaped=$(escape_for_json "$map_raw")
         session_context="${session_context}\\n<UNTRUSTED_CODEBASE_MAP>\\n${map_escaped}\\n</UNTRUSTED_CODEBASE_MAP>"
+    fi
+
+    # Staleness check — best-effort, never fails the hook.
+    map_date=$(grep -m1 '^\*\*Generated:\*\*' "$CODEBASE_MAP" 2>/dev/null \
+        | sed -E 's/^\*\*Generated:\*\*[[:space:]]*([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/' || echo "")
+    if [ -n "$map_date" ]; then
+        new_files=$(cd "$PROJECT_CWD" 2>/dev/null && \
+            git log --since="$map_date" --diff-filter=A --name-only --pretty=format: 2>/dev/null \
+            | grep -v '^$' \
+            | grep -v '^docs/' \
+            | sort -u | wc -l | tr -d ' ' || echo "0")
+        if [ "${new_files:-0}" -gt 10 ]; then
+            staleness_notice="Codebase map last updated ${map_date}; ${new_files} new source files since. Consider running /fellowship:map before structural work or Tier 3+ dispatch."
+            staleness_escaped=$(escape_for_json "$staleness_notice")
+            session_context="${session_context}\\n<CODEBASE_MAP_STALENESS>\\n${staleness_escaped}\\n</CODEBASE_MAP_STALENESS>"
+        fi
     fi
 fi
 

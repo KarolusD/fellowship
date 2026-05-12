@@ -1,8 +1,7 @@
 ---
 name: codebase-map
 description: Use when entering an unfamiliar codebase, or when companions report missing structural context. Maps the stack, architecture, conventions, structure, and concerns into a single prescriptive reference file all companions can use.
-user-invocable: true
-trigger: /fellowship:map
+user-invocable: false
 ---
 
 # Codebase Map
@@ -12,6 +11,12 @@ Use this skill when starting work on an unfamiliar project, or when `docs/fellow
 **Invocation:** `/fellowship:map`
 
 **Output:** `docs/fellowship/codebase-map.md`
+
+## Execution trigger
+
+**When this skill is loaded via `/fellowship:map`, begin generating immediately.** Typing the slash command IS the confirmation — do not ask "ready when you want me to produce the map" or "say the word." Acknowledge briefly in voice (one line, e.g. *"On it — surveying now."*), then start the exploration.
+
+If `docs/fellowship/codebase-map.md` already exists, ask one question only: *"Update the existing map, or regenerate from scratch?"* Then proceed. No further confirmation.
 
 ---
 

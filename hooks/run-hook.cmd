@@ -20,7 +20,6 @@ REM Reject any other script name to prevent path traversal or arbitrary executio
 REM Update this list whenever a new hook is registered in hooks.json.
 set "HOOK_NAME=%~1"
 if /i "%HOOK_NAME%"=="session-start" goto :hook_ok
-if /i "%HOOK_NAME%"=="fellowship-quest-log-consolidate" goto :hook_ok
 if /i "%HOOK_NAME%"=="fellowship-plan-gate" goto :hook_ok
 if /i "%HOOK_NAME%"=="fellowship-context-monitor" goto :hook_ok
 if /i "%HOOK_NAME%"=="fellowship-session-end" goto :hook_ok
@@ -60,7 +59,7 @@ SCRIPT_NAME="${1:-}"
 # Reject any other script name to prevent path traversal or arbitrary execution.
 # Update this list whenever a new hook is registered in hooks.json.
 case "$SCRIPT_NAME" in
-    session-start|fellowship-quest-log-consolidate|fellowship-plan-gate|fellowship-context-monitor|fellowship-session-end)
+    session-start|fellowship-plan-gate|fellowship-context-monitor|fellowship-session-end)
         ;;
     "")
         echo "run-hook.cmd: missing script name" >&2

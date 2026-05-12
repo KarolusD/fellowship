@@ -1,6 +1,7 @@
 ---
 name: using-worktrees
 description: Use when dispatched into an isolated git worktree (path under .claude/worktrees/) so parallel agent work does not collide on main — covers the startup checks, the builder commit contract, the orchestrator's eager merge, and the failure modes Fellowship has hit in practice.
+user-invocable: false
 ---
 
 # Using Worktrees

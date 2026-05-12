@@ -1,6 +1,7 @@
 ---
 name: design-it-twice
 description: "Generate multiple radically different module/API designs in parallel and compare them on depth, simplicity, and leverage. Merry's skill for architectural decisions where multiple module shapes are worth exploring before committing. Use when designing a new module, exploring API options, comparing module shapes, or when the user mentions \"design it twice,\" \"explore multiple module shapes,\" or \"compare API options.\" The first instinct is rarely the best — this skill forces a second."
+user-invocable: false
 ---
 
 # Design It Twice

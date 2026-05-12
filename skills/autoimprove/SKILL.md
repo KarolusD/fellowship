@@ -1,6 +1,7 @@
 ---
 name: autoimprove
 description: Use when an agent file shows recurring failures in a feedback log, or when running a scheduled improvement pass on a Fellowship companion. Autonomous improvement loop with baseline, cycles, and report phases against eval scenarios.
+user-invocable: false
 ---
 
 # AutoImprove — Agent Improvement Loop
